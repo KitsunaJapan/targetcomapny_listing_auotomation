@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>営業先リスト化ツール</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Hiragino Sans', 'Yu Gothic', sans-serif; background: #f5f4f0; color: #1a1a1a; min-height: 100vh; padding: 2rem 1rem; }
+  .container { max-width: 700px; margin: 0 auto; }
+  .header { margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; }
+  .header h1 { font-size: 22px; font-weight: 500; }
+  .header p { font-size: 13px; color: #666; margin-top: 4px; }
+  .tab-row { display: flex; border-bottom: 1px solid #ddd; margin-bottom: 1.5rem; }
+  .tab { padding: 8px 18px; font-size: 13px; cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; color: #888; margin-bottom: -1px; font-family: inherit; }
+  .tab.active { color: #1a1a1a; border-bottom-color: #1a1a1a; font-weight: 500; }
+  .section { margin-bottom: 1.5rem; }
+  .section-label { font-size: 11px; font-weight: 500; color: #888; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+  input[type="text"], input[type="password"], input[type="number"], select {
+    width: 100%; padding: 9px 12px; border-radius: 8px; border: 1px solid #ddd;
+    background: #fff; color: #1a1a1a; font-size: 13px; font-family: inherit; margin-bottom: 8px;
+  }
+  input:focus, select:focus { outline: none; border-color: #aaa; }
+  input::placeholder { color: #bbb; }
+
+  /* ログイン */
+  .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+  .login-card { background: #fff; border: 1px solid #e8e8e8; border-radius: 16px; padding: 2.5rem 2rem; width: 100%; max-width: 360px; }
+  .login-card h2 { font-size: 18px; font-weight: 500; margin-bottom: 4px; }
+  .login-card p { font-size: 13px; color: #888; margin-bottom: 1.5rem; }
+  .login-error { font-size: 13px; color: #c62828; background: #fdecea; padding: 8px 12px; border-radius: 8px; margin-bottom: 12px; }
+
+  /* ボタン */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px 18px; border-radius: 8px; border: 1px solid #ddd; background: #fff; color: #1a1a1a; font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+  .btn:hover { background: #f5f4f0; }
+  .btn:active { transform: scale(0.98); }
+  .btn.primary { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+  .btn.primary:hover { background: #333; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn.small { padding: 6px 14px; width: auto; font-size: 13px; }
+  .btn.danger { border-color: #f5c2c2; color: #c62828; }
+  .btn.danger:hover { background: #fdecea; }
+  .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1.5rem; }
+
+  /* ステータス */
+  .status-bar { font-size: 13px; padding: 10px 14px; border-radius: 8px; margin-bottom: 1rem; }
+  .status-bar.loading { background: #e8f0fe; color: #1a56db; }
+  .status-bar.success { background: #e8f5e9; color: #2e7d32; }
+  .status-bar.error   { background: #fdecea; color: #c62828; }
+  .hidden { display: none !important; }
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* 結果テーブル */
+  .result-table-wrap { overflow-x: auto; }
+  table.result-table { width: 100%; border-collapse: collapse; font-size: 12px; background: #fff; border-radius: 8px; overflow: hidden; border: 1px solid #e8e8e8; }
+  table.result-table th { background: #f5f4f0; padding: 8px 10px; text-align: left; font-weight: 500; color: #555; border-bottom: 1px solid #e8e8e8; white-space: nowrap; }
+  table.result-table td { padding: 6px 8px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+  table.result-table tr:last-child td { border-bottom: none; }
+  table.result-table input[type="text"] { width: 100%; min-width: 80px; border: none; background: transparent; font-size: 12px; font-family: inherit; color: #1a1a1a; padding: 2px 4px; border-radius: 4px; margin-bottom: 0; }
+  table.result-table input[type="text"]:focus { outline: none; background: #f5f4f0; }
+  table.result-table .row-num { color: #aaa; text-align: center; width: 28px; font-size: 11px; }
+
+  .count-badge { font-size: 12px; background: #1a1a1a; color: #fff; border-radius: 999px; padding: 1px 8px; margin-left: 6px; }
+  .note { font-size: 12px; color: #888; line-height: 1.6; padding: 10px 12px; background: #fff; border-radius: 8px; border: 1px solid #e8e8e8; }
+  .note a { color: #1a56db; }
+  .badge { font-size: 11px; padding: 2px 9px; border-radius: 999px; background: #e8f5e9; color: #2e7d32; }
+
+  /* 履歴 */
+  .history-item { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+  .history-item:last-child { border-bottom: none; }
+  .history-name { font-weight: 500; }
+  .history-sub { color: #888; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<!-- ログイン画面 -->
+<div class="login-wrap" id="login-screen">
+  <div class="login-card">
+    <h2>📋 営業先リスト化ツール</h2>
+    <p>パスワードを入力してください</p>
+    <div id="login-error" class="login-error hidden"></div>
+    <input type="password" id="login-password" placeholder="パスワード" onkeydown="if(event.key==='Enter') doLogin()" />
+    <button class="btn primary" onclick="doLogin()">
+      <span id="login-label">ログイン</span>
+    </button>
+  </div>
+</div>
+
+<!-- メインアプリ -->
+<div class="container hidden" id="main-app">
+  <div class="header">
+    <div>
+      <h1>営業先リスト化ツール</h1>
+      <p>経済産業省 gBizINFO から業種別企業情報を取得してスプレッドシートに保存します</p>
+    </div>
+    <button class="btn danger small" onclick="doLogout()">ログアウト</button>
+  </div>
+
+  <div class="tab-row">
+    <button class="tab active" onclick="switchTab('main')">リスト取得</button>
+    <button class="tab" onclick="switchTab('settings')">設定</button>
+    <button class="tab" onclick="switchTab('history')">履歴</button>
+  </div>
+
+  <!-- メインタブ -->
+  <div id="tab-main">
+    <div id="status-bar" class="status-bar hidden"></div>
+
+    <div class="section">
+      <div class="section-label">検索条件</div>
+      <select id="industry-select">
+        <option value="">業種を選択してください</option>
+        <option value="A">A：農業、林業</option>
+        <option value="B">B：漁業</option>
+        <option value="C">C：鉱業、採石業、砂利採取業</option>
+        <option value="D">D：建設業</option>
+        <option value="E">E：製造業</option>
+        <option value="F">F：電気・ガス・熱供給・水道業</option>
+        <option value="G">G：情報通信業</option>
+        <option value="H">H：運輸業、郵便業</option>
+        <option value="I">I：卸売業、小売業</option>
+        <option value="J">J：金融業、保険業</option>
+        <option value="K">K：不動産業、物品賃貸業</option>
+        <option value="L">L：学術研究、専門・技術サービス業</option>
+        <option value="M">M：宿泊業、飲食サービス業</option>
+        <option value="N">N：生活関連サービス業、娯楽業</option>
+        <option value="O">O：教育、学習支援業</option>
+        <option value="P">P：医療、福祉</option>
+        <option value="Q">Q：複合サービス事業</option>
+        <option value="R">R：サービス業（他に分類されないもの）</option>
+        <option value="S">S：公務（他に分類されるものを除く）</option>
+        <option value="T">T：分類不能の産業</option>
+      </select>
+      <input type="number" id="max-results" value="50" min="10" max="500" step="10" placeholder="最大取得件数（10〜500）" />
+    </div>
+
+    <div class="btn-grid">
+      <button class="btn" onclick="resetAll()">リセット</button>
+      <button class="btn primary" id="fetch-btn" onclick="doFetch()">
+        <span id="fetch-label">✦ 企業情報を取得</span>
+      </button>
+    </div>
+
+    <!-- 結果 -->
+    <div id="result-section" class="hidden">
+      <div class="section">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+          <div class="section-label">取得データ（編集可能）<span class="count-badge" id="result-count">0</span></div>
+          <button class="btn small" onclick="document.getElementById('result-section').classList.add('hidden')">クリア</button>
+        </div>
+        <div class="result-table-wrap">
+          <table class="result-table" id="result-table">
+            <thead>
+              <tr>
+                <th class="row-num">#</th>
+                <th>登録日付</th><th>会社名</th><th>電話番号</th><th>FAX番号</th>
+                <th>メール</th><th>住所</th><th>HP</th>
+              </tr>
+            </thead>
+            <tbody id="result-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <button class="btn primary" id="sheet-btn" onclick="writeToSheet()" style="margin-top:8px;">
+        <span id="sheet-label">📊 スプレッドシートに保存</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 設定タブ -->
+  <div id="tab-settings" class="hidden">
+    <div class="section">
+      <div class="section-label">gBizINFO API設定</div>
+      <input type="text" id="gbiz-token" placeholder="gBizINFO APIトークン" />
+      <div class="note">
+        未取得の場合は <a href="https://info.gbiz.go.jp/hojin/various_registration/form" target="_blank">gBizINFO申請ページ</a> から取得してください（無料・翌日メール）
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-label">Google Sheets 設定</div>
+      <input type="text" id="sheet-id" placeholder="スプレッドシートID" />
+      <input type="password" id="google-token" placeholder="Google OAuth アクセストークン" />
+      <div class="note">
+        トークン取得：<a href="https://developers.google.com/oauthplayground/" target="_blank">OAuth Playground</a> を開き、
+        「Google Sheets API v4」→「.../auth/spreadsheets」を選択して認証し、
+        取得した <code>access_token</code> を貼り付けてください。
+      </div>
+    </div>
+    <button class="btn primary" onclick="saveSettings()">設定を保存</button>
+  </div>
+
+  <!-- 履歴タブ -->
+  <div id="tab-history" class="hidden">
+    <div class="section">
+      <div class="section-label">保存済みリスト</div>
+      <div id="history-list">
+        <div style="font-size:13px; color:#aaa; padding:1rem 0;">まだ保存したリストがありません</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API_BASE = "";
+  const FIELDS   = ["登録日付","会社名","電話番号","FAX番号","メールアドレス","住所","HP"];
+  let historyLog = [];
+
+  // ── 認証 ──────────────────────────────────────────────
+  async function doLogin() {
+    const pw    = document.getElementById('login-password').value;
+    const label = document.getElementById('login-label');
+    const errEl = document.getElementById('login-error');
+    label.innerHTML = '<span class="spinner"></span>';
+    errEl.classList.add('hidden');
+    try {
+      const res  = await fetch(`${API_BASE}/login`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ password: pw }), credentials: 'include'
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'エラー');
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('main-app').classList.remove('hidden');
+      loadSettings();
+    } catch(err) {
+      errEl.textContent = err.message;
+      errEl.classList.remove('hidden');
+      label.textContent = 'ログイン';
+    }
+  }
+
+  async function doLogout() {
+    await fetch(`${API_BASE}/logout`, { method: 'POST', credentials: 'include' });
+    document.getElementById('main-app').classList.add('hidden');
+    document.getElementById('login-screen').classList.remove('hidden');
+    document.getElementById('login-password').value = '';
+  }
+
+  // ── 設定 ──────────────────────────────────────────────
+  function loadSettings() {
+    const s = JSON.parse(localStorage.getItem('sales_settings') || '{}');
+    if (s.gbizToken)   document.getElementById('gbiz-token').value   = s.gbizToken;
+    if (s.sheetId)     document.getElementById('sheet-id').value     = s.sheetId;
+    if (s.googleToken) document.getElementById('google-token').value = s.googleToken;
+    historyLog = JSON.parse(localStorage.getItem('sales_history') || '[]');
+    renderHistory();
+  }
+
+  function saveSettings() {
+    localStorage.setItem('sales_settings', JSON.stringify({
+      gbizToken:   document.getElementById('gbiz-token').value,
+      sheetId:     document.getElementById('sheet-id').value,
+      googleToken: document.getElementById('google-token').value,
+    }));
+    setStatus('設定を保存しました', 'success');
+    setTimeout(() => setStatus('', ''), 2000);
+    switchTab('main');
+  }
+
+  // ── タブ ──────────────────────────────────────────────
+  function switchTab(name) {
+    ['main','settings','history'].forEach((t, i) => {
+      document.getElementById('tab-'+t).classList.add('hidden');
+      document.querySelectorAll('.tab')[i].classList.remove('active');
+    });
+    document.getElementById('tab-'+name).classList.remove('hidden');
+    document.querySelectorAll('.tab')[['main','settings','history'].indexOf(name)].classList.add('active');
+  }
+
+  // ── ステータス ─────────────────────────────────────────
+  function setStatus(msg, type) {
+    const bar = document.getElementById('status-bar');
+    if (!msg) { bar.classList.add('hidden'); return; }
+    bar.textContent = msg;
+    bar.className = 'status-bar ' + type;
+    bar.classList.remove('hidden');
+  }
+
+  function resetAll() {
+    document.getElementById('result-section').classList.add('hidden');
+    document.getElementById('industry-select').value = '';
+    document.getElementById('max-results').value = '50';
+    setStatus('', '');
+  }
+
+  // ── 企業情報取得 ───────────────────────────────────────
+  async function doFetch() {
+    const industryCode = document.getElementById('industry-select').value;
+    const gbizToken    = document.getElementById('gbiz-token').value.trim();
+    const maxResults   = document.getElementById('max-results').value;
+
+    if (!industryCode)  { setStatus('業種を選択してください', 'error'); return; }
+    if (!gbizToken)     { setStatus('設定タブでgBizINFO APIトークンを入力してください', 'error'); return; }
+
+    const btn   = document.getElementById('fetch-btn');
+    const label = document.getElementById('fetch-label');
+    btn.disabled = true;
+    label.innerHTML = '<span class="spinner"></span> 取得中...';
+    setStatus('gBizINFO APIから企業情報を取得しています...', 'loading');
+
+    try {
+      const res  = await fetch(`${API_BASE}/api/fetch`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        credentials: 'include',
+        body: JSON.stringify({ industry_code: industryCode, gbiz_token: gbizToken, max_results: maxResults })
+      });
+      const data = await res.json();
+      if (res.status === 401) { doLogout(); return; }
+      if (!res.ok) throw new Error(data.error || 'APIエラー');
+
+      renderResultTable(data.companies);
+      setStatus(`✓ ${data.industry} の企業を ${data.fetched}件 取得しました`, 'success');
+    } catch(err) {
+      setStatus('エラー: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      label.textContent = '✦ 企業情報を取得';
+    }
+  }
+
+  // ── 結果テーブル描画 ───────────────────────────────────
+  function renderResultTable(companies) {
+    const tbody = document.getElementById('result-tbody');
+    tbody.innerHTML = companies.map((c, i) => `
+      <tr>
+        <td class="row-num">${i+1}</td>
+        ${FIELDS.map(f => `<td><input type="text" id="r${i}_${f}" value="${(c[f]||'').replace(/"/g,'&quot;')}" placeholder="-" /></td>`).join('')}
+      </tr>
+    `).join('');
+    document.getElementById('result-count').textContent = companies.length;
+    document.getElementById('result-section').classList.remove('hidden');
+  }
+
+  // ── スプレッドシートに保存（名刺リーダーと同じ方式） ──
+  async function writeToSheet() {
+    const token      = document.getElementById('google-token').value.trim();
+    const sheetId    = document.getElementById('sheet-id').value.trim();
+    const sheetName  = document.getElementById('industry-select').options[document.getElementById('industry-select').selectedIndex]?.text?.replace(/^[A-Z]：/, '') || '営業先リスト';
+
+    if (!token)   { setStatus('設定タブでGoogle OAuthトークンを入力してください', 'error'); return; }
+    if (!sheetId) { setStatus('設定タブでスプレッドシートIDを入力してください', 'error'); return; }
+
+    const rowCount = document.getElementById('result-tbody').querySelectorAll('tr').length;
+    if (rowCount === 0) return;
+
+    const btn   = document.getElementById('sheet-btn');
+    const label = document.getElementById('sheet-label');
+    btn.disabled = true;
+    label.innerHTML = '<span class="spinner"></span> 保存中...';
+    setStatus('スプレッドシートに書き込んでいます...', 'loading');
+
+    const rows = Array.from({length: rowCount}, (_, i) =>
+      FIELDS.map(f => document.getElementById(`r${i}_${f}`)?.value || '')
+    );
+
+    try {
+      const res  = await fetch(`${API_BASE}/write_sheet_batch`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        credentials: 'include',
+        body: JSON.stringify({ token, sheet_id: sheetId, sheet_name: sheetName, rows })
+      });
+      const data = await res.json();
+      if (res.status === 401) { doLogout(); return; }
+      if (!res.ok) throw new Error(data.error || '書き込みエラー');
+
+      // 履歴に追記
+      historyLog.unshift({ industry: sheetName, count: data.written, mode: data.mode, date: new Date().toLocaleDateString('ja-JP') });
+      localStorage.setItem('sales_history', JSON.stringify(historyLog.slice(0, 50)));
+      renderHistory();
+
+      setStatus(`✓ ${data.written}件を「${sheetName}」シートに${data.mode}しました`, 'success');
+      label.textContent = `✓ ${data.written}件 保存完了`;
+      setTimeout(() => { label.textContent = '📊 スプレッドシートに保存'; }, 3000);
+    } catch(err) {
+      setStatus('保存エラー: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // ── 履歴 ──────────────────────────────────────────────
+  function renderHistory() {
+    const list = document.getElementById('history-list');
+    if (!historyLog.length) {
+      list.innerHTML = '<div style="font-size:13px; color:#aaa; padding:1rem 0;">まだ保存したリストがありません</div>';
+      return;
+    }
+    list.innerHTML = historyLog.slice(0, 30).map(h => `
+      <div class="history-item">
+        <div>
+          <div class="history-name">${h.industry}</div>
+          <div class="history-sub">${h.count}件 · ${h.mode} · ${h.date}</div>
+        </div>
+        <span class="badge">保存済み</span>
+      </div>
+    `).join('');
+  }
+</script>
+</body>
+</html>
