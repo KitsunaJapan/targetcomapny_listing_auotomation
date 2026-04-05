@@ -10,7 +10,8 @@ CORS(app)
 APP_PASSWORD   = os.environ.get("APP_PASSWORD", "password123")
 app.secret_key = os.environ.get("SECRET_KEY", "change-this-secret-key")
 
-GBIZ_API_BASE = "https://api.info.gbiz.go.jp/hojin/v2"
+# v2はリニューアル後エンドポイントが変わったため v1 を使用（当面利用可能）
+GBIZ_API_BASE = "https://api.info.gbiz.go.jp/hojin/v1"
 
 INDUSTRY_CATEGORIES = {
     "A": "農業、林業",
@@ -74,7 +75,11 @@ def api_fetch():
     if not industry_code or not gbiz_token:
         return jsonify({"error": "業種とgBizINFO APIトークンは必須です"}), 400
 
-    headers   = {"X-hojinInfo-api-token": gbiz_token}
+    # v1 API ヘッダー
+    headers   = {
+        "X-hojinInfo-api-token": gbiz_token,
+        "Accept": "application/json",
+    }
     companies = []
     offset    = 1
     limit     = 10
@@ -84,15 +89,20 @@ def api_fetch():
             resp = requests.get(
                 f"{GBIZ_API_BASE}/hojin",
                 headers=headers,
-                params={"category": industry_code, "limit": limit, "offset": offset},
+                # v1のパラメータ: category ではなく industry
+                params={"industry": industry_code, "limit": limit, "offset": offset},
                 timeout=15,
             )
-            if resp.status_code == 401:
-                return jsonify({"error": "gBizINFO APIトークンが無効です"}), 400
-            if resp.status_code == 429:
-                time.sleep(2)
-                continue
-            resp.raise_for_status()
+            # エラー詳細をそのまま返してデバッグしやすくする
+            if not resp.ok:
+                try:
+                    err_body = resp.json()
+                except Exception:
+                    err_body = resp.text
+                return jsonify({
+                    "error": f"gBizINFO APIエラー (HTTP {resp.status_code})",
+                    "detail": err_body,
+                }), 400
 
             body       = resp.json()
             hojin_list = body.get("hojin-infos", [])
