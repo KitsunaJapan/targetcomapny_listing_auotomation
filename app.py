@@ -10,8 +10,8 @@ CORS(app)
 APP_PASSWORD   = os.environ.get("APP_PASSWORD", "password123")
 app.secret_key = os.environ.get("SECRET_KEY", "change-this-secret-key")
 
-# v2はリニューアル後エンドポイントが変わったため v1 を使用（当面利用可能）
-GBIZ_API_BASE = "https://api.info.gbiz.go.jp/hojin/v1"
+# 正しいv1エンドポイント（ドメインは info.gbiz.go.jp）
+GBIZ_API_BASE = "https://info.gbiz.go.jp/hojin/v1"
 
 INDUSTRY_CATEGORIES = {
     "A": "農業、林業",
@@ -89,8 +89,8 @@ def api_fetch():
             resp = requests.get(
                 f"{GBIZ_API_BASE}/hojin",
                 headers=headers,
-                # v1のパラメータ: category ではなく industry
-                params={"industry": industry_code, "limit": limit, "offset": offset},
+                # v1の正しい業種パラメータは business_item
+                params={"business_item": industry_code, "limit": limit, "offset": offset},
                 timeout=15,
             )
             # エラー詳細をそのまま返してデバッグしやすくする
