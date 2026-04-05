@@ -10,31 +10,7 @@ CORS(app)
 APP_PASSWORD   = os.environ.get("APP_PASSWORD", "password123")
 app.secret_key = os.environ.get("SECRET_KEY", "change-this-secret-key")
 
-# 正しいv1エンドポイント（ドメインは info.gbiz.go.jp）
 GBIZ_API_BASE = "https://info.gbiz.go.jp/hojin/v1"
-
-INDUSTRY_CATEGORIES = {
-    "A": "農業、林業",
-    "B": "漁業",
-    "C": "鉱業、採石業、砂利採取業",
-    "D": "建設業",
-    "E": "製造業",
-    "F": "電気・ガス・熱供給・水道業",
-    "G": "情報通信業",
-    "H": "運輸業、郵便業",
-    "I": "卸売業、小売業",
-    "J": "金融業、保険業",
-    "K": "不動産業、物品賃貸業",
-    "L": "学術研究、専門・技術サービス業",
-    "M": "宿泊業、飲食サービス業",
-    "N": "生活関連サービス業、娯楽業",
-    "O": "教育、学習支援業",
-    "P": "医療、福祉",
-    "Q": "複合サービス事業",
-    "R": "サービス業（他に分類されないもの）",
-    "S": "公務（他に分類されるものを除く）",
-    "T": "分類不能の産業",
-}
 
 
 def check_auth():
@@ -61,88 +37,82 @@ def logout():
     return jsonify({"success": True})
 
 
-@app.route("/api/fetch", methods=["POST"])
-def api_fetch():
-    """gBizINFO APIから業種別企業情報を取得する"""
+@app.route("/api/enrich", methods=["POST"])
+def api_enrich():
+    """
+    フロント（ブラウザ）で国税庁CSVを読み込み・業種フィルタ済みの
+    法人番号リストを受け取り、gBizINFO APIで連絡先を補完して返す。
+    サーバーはCSVを一切扱わないのでメモリ消費なし。
+    """
     if not check_auth():
         return jsonify({"error": "認証が必要です"}), 401
 
-    data          = request.json
-    industry_code = data.get("industry_code", "").strip()
-    gbiz_token    = data.get("gbiz_token", "").strip()
-    max_results   = min(int(data.get("max_results", 50)), 500)
+    data        = request.json
+    corp_nums   = data.get("corp_nums", [])   # 法人番号の配列（最大500件）
+    gbiz_token  = data.get("gbiz_token", "").strip()
+    names       = data.get("names", {})        # {法人番号: 法人名} のマップ（CSV由来）
+    addresses   = data.get("addresses", {})    # {法人番号: 住所} のマップ（CSV由来）
 
-    if not industry_code or not gbiz_token:
-        return jsonify({"error": "業種とgBizINFO APIトークンは必須です"}), 400
+    if not corp_nums or not gbiz_token:
+        return jsonify({"error": "法人番号リストとgBizINFO APIトークンは必須です"}), 400
 
-    # v1 API ヘッダー
-    headers   = {
+    headers = {
         "X-hojinInfo-api-token": gbiz_token,
         "Accept": "application/json",
     }
-    companies = []
-    offset    = 1
-    limit     = 10
 
-    try:
-        while len(companies) < max_results:
+    results = []
+    for corp_num in corp_nums[:500]:
+        try:
             resp = requests.get(
-                f"{GBIZ_API_BASE}/hojin",
+                f"{GBIZ_API_BASE}/hojin/{corp_num}",
                 headers=headers,
-                # v1の正しい業種パラメータは business_item
-                params={"business_item": industry_code, "limit": limit, "offset": offset},
-                timeout=15,
+                timeout=10,
             )
-            # エラー詳細をそのまま返してデバッグしやすくする
-            if not resp.ok:
-                try:
-                    err_body = resp.json()
-                except Exception:
-                    err_body = resp.text
-                return jsonify({
-                    "error": f"gBizINFO APIエラー (HTTP {resp.status_code})",
-                    "detail": err_body,
-                }), 400
 
-            body       = resp.json()
-            hojin_list = body.get("hojin-infos", [])
-            if not hojin_list:
-                break
-
-            for h in hojin_list:
-                companies.append({
-                    "登録日付":      h.get("update_date", ""),
-                    "会社名":        h.get("name", ""),
-                    "電話番号":      h.get("phone_number", ""),
-                    "FAX番号":       h.get("fax_number", ""),
-                    "メールアドレス": h.get("mail", ""),
-                    "住所":          (h.get("prefecture_name", "") + h.get("city_name", "") + h.get("street_number", "")),
-                    "HP":            h.get("company_url", ""),
+            if resp.status_code == 404:
+                # gBizINFOに未登録 → CSV由来の情報だけで登録
+                results.append({
+                    "登録日付":      "",
+                    "会社名":        names.get(str(corp_num), ""),
+                    "電話番号":      "",
+                    "FAX番号":       "",
+                    "メールアドレス": "",
+                    "住所":          addresses.get(str(corp_num), ""),
+                    "HP":            "",
                 })
+                continue
 
-            total   = body.get("totalCount", 0)
-            offset += limit
-            time.sleep(0.3)
-            if offset > min(total, max_results):
-                break
+            if not resp.ok:
+                continue  # その他エラーはスキップ
 
-        return jsonify({
-            "success":   True,
-            "fetched":   len(companies),
-            "industry":  INDUSTRY_CATEGORIES.get(industry_code, industry_code),
-            "companies": companies,
-        })
+            h = resp.json().get("hojin-infos", [{}])[0]
+            results.append({
+                "登録日付":      h.get("update_date", ""),
+                "会社名":        h.get("name", "") or names.get(str(corp_num), ""),
+                "電話番号":      h.get("phone_number", ""),
+                "FAX番号":       h.get("fax_number", ""),
+                "メールアドレス": h.get("mail", ""),
+                "住所":          (h.get("prefecture_name", "") + h.get("city_name", "") + h.get("street_number", ""))
+                                  or addresses.get(str(corp_num), ""),
+                "HP":            h.get("company_url", ""),
+            })
 
-    except Exception as e:
-        return jsonify({"error": f"取得エラー: {str(e)}"}), 500
+            time.sleep(0.2)  # レート制限対応
+
+        except Exception:
+            continue
+
+    return jsonify({
+        "success": True,
+        "fetched": len(results),
+        "results": results,
+    })
 
 
 @app.route("/write_sheet_batch", methods=["POST"])
 def write_sheet_batch():
-    """
-    名刺リーダーと同じ認証方式：
-    フロントから渡されたOAuth tokenでSheets APIを直接叩く
-    """
+    """OAuthトークンでSheets APIを直接叩く（名刺リーダーと同じ方式）"""
     if not check_auth():
         return jsonify({"error": "認証が必要です"}), 401
 
@@ -158,7 +128,6 @@ def write_sheet_batch():
     auth_header = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
     meta_url    = f"https://sheets.googleapis.com/v4/spreadsheets/{sheet_id}"
 
-    # スプレッドシートのメタ情報取得（アクセス確認 + シート一覧）
     meta_res = requests.get(meta_url, headers=auth_header, timeout=10)
     if not meta_res.ok:
         err = meta_res.json().get("error", {}).get("message", "スプレッドシートへのアクセスに失敗しました")
@@ -166,7 +135,6 @@ def write_sheet_batch():
 
     existing_sheets = [s["properties"]["title"] for s in meta_res.json().get("sheets", [])]
 
-    # シートがなければ新規作成 → ヘッダー書き込み
     if sheet_name not in existing_sheets:
         add_res = requests.post(
             f"{meta_url}:batchUpdate",
@@ -189,7 +157,6 @@ def write_sheet_batch():
     else:
         mode = "追記"
 
-    # データを一括 append
     range_enc = requests.utils.quote(f"{sheet_name}!A:G", safe="")
     write_url = (
         f"https://sheets.googleapis.com/v4/spreadsheets/{sheet_id}/values/"
