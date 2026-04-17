@@ -352,7 +352,7 @@ function parseCSVText(text) {
     if (clean.length < 13) continue;
     const corpNum = clean[1];  // 列2: 法人番号（13桁）
     const name    = clean[6];  // 列7: 法人名
-    const pref    = clean[12]; // 列13: 都道府県名
+    const pref    = clean[9];  // 列10: 都道府県名（実データ確認済み）
     if (!corpNum || corpNum.length !== 13) continue;
     csvRows.push({ corp_num: corpNum, name, pref });
   }
