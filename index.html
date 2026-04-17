@@ -342,38 +342,59 @@ function setStatus(tab, msg, type) {
 }
 
 // ── CSV読み込み（ブラウザ側） ─────────────────────────
+function parseCSVText(text) {
+  const lines = text.split('\n');
+  csvRows = [];
+  for (let i = 1; i < lines.length; i++) {
+    // クォート対応の列分割
+    const cols = lines[i].match(/("(?:[^"]|"")*"|[^,]*)/g) || [];
+    const clean = cols.map(c => c.replace(/^"|"$/g,'').replace(/""/g,'"').trim());
+    if (clean.length < 13) continue;
+    const corpNum = clean[1];  // 列2: 法人番号（13桁）
+    const name    = clean[6];  // 列7: 法人名
+    const pref    = clean[12]; // 列13: 都道府県名
+    if (!corpNum || corpNum.length !== 13) continue;
+    csvRows.push({ corp_num: corpNum, name, pref });
+  }
+}
+
 function handleCSV(event) {
   const file = event.target.files[0];
   if (!file) return;
   setStatus('collect', '<span class="spinner"></span> CSVを読み込んでいます...', 'loading');
   document.getElementById('csv-progress-wrap').classList.remove('hidden');
 
-  const reader = new FileReader();
-  reader.onprogress = (e) => {
-    if (e.lengthComputable)
-      document.getElementById('csv-progress').style.width = Math.round(e.loaded/e.total*100) + '%';
+  // まずShift-JISで試みる → 文字化けならUTF-8で再試行
+  const tryRead = (encoding) => {
+    const reader = new FileReader();
+    reader.onprogress = (e) => {
+      if (e.lengthComputable)
+        document.getElementById('csv-progress').style.width = Math.round(e.loaded/e.total*100) + '%';
+    };
+    reader.onload = (e) => {
+      const text = e.target.result;
+      // 文字化け検出: Shift-JISで読んで都道府県名に「?」や「□」が多ければUTF-8で再試行
+      const garbled = (text.match(/[\uFFFD?□]/g) || []).length > 10;
+      if (garbled && encoding === 'Shift-JIS') {
+        tryRead('UTF-8');
+        return;
+      }
+      parseCSVText(text);
+      document.getElementById('upload-zone').classList.add('has-file');
+      document.getElementById('upload-text').textContent = `✓ ${file.name}（${encoding}）`;
+      document.getElementById('csv-progress').style.width = '100%';
+      document.getElementById('csv-stats').textContent = `${csvRows.length.toLocaleString()} 件読み込み完了`;
+      if (csvRows.length === 0) {
+        setStatus('collect', '⚠️ 0件でした。国税庁の全件CSVか確認してください。', 'error');
+      } else {
+        setStatus('collect', `✓ CSV読み込み完了（${csvRows.length.toLocaleString()}件 / ${encoding}）`, 'success');
+      }
+    };
+    reader.onerror = () => setStatus('collect', 'CSVの読み込みに失敗しました', 'error');
+    reader.readAsText(file, encoding);
   };
-  reader.onload = (e) => {
-    const lines = e.target.result.split('\n');
-    csvRows = [];
-    for (let i = 1; i < lines.length; i++) {
-      const cols = lines[i].split(',');
-      if (cols.length < 15) continue;
-      const corpNum = cols[1]?.replace(/"/g,'').trim();
-      const name    = cols[6]?.replace(/"/g,'').trim();
-      const pref    = cols[12]?.replace(/"/g,'').trim(); // 列13: 都道府県名
-      if (!corpNum || corpNum.length !== 13) continue;
-      csvRows.push({ corp_num: corpNum, name, pref });
-    }
-    document.getElementById('upload-zone').classList.add('has-file');
-    document.getElementById('upload-text').textContent = `✓ ${file.name}`;
-    document.getElementById('csv-progress').style.width = '100%';
-    document.getElementById('csv-stats').textContent = `${csvRows.length.toLocaleString()} 件読み込み完了`;
-    setStatus('collect', `✓ CSV読み込み完了（${csvRows.length.toLocaleString()}件）`, 'success');
-  };
-  reader.onerror = () => setStatus('collect', 'CSVの読み込みに失敗しました', 'error');
-  // 国税庁CSVはShift-JISの場合があるためUTF-8で試みる
-  reader.readAsText(file, 'UTF-8');
+
+  tryRead('Shift-JIS');
 }
 
 function resetCollect() {
