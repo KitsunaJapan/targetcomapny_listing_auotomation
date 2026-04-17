@@ -7,7 +7,7 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Hiragino Sans', 'Yu Gothic', sans-serif; background: #f5f4f0; color: #1a1a1a; min-height: 100vh; padding: 2rem 1rem; }
-  .container { max-width: 700px; margin: 0 auto; }
+  .container { max-width: 720px; margin: 0 auto; }
   .header { margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; }
   .header h1 { font-size: 22px; font-weight: 500; }
   .header p { font-size: 13px; color: #666; margin-top: 4px; }
@@ -22,69 +22,56 @@
   }
   input:focus, select:focus { outline: none; border-color: #aaa; }
   input::placeholder { color: #bbb; }
-
   .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
   .login-card { background: #fff; border: 1px solid #e8e8e8; border-radius: 16px; padding: 2.5rem 2rem; width: 100%; max-width: 360px; }
   .login-card h2 { font-size: 18px; font-weight: 500; margin-bottom: 4px; }
   .login-card p { font-size: 13px; color: #888; margin-bottom: 1.5rem; }
   .login-error { font-size: 13px; color: #c62828; background: #fdecea; padding: 8px 12px; border-radius: 8px; margin-bottom: 12px; }
-
   .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px 18px; border-radius: 8px; border: 1px solid #ddd; background: #fff; color: #1a1a1a; font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; transition: all 0.15s; }
   .btn:hover { background: #f5f4f0; }
-  .btn:active { transform: scale(0.98); }
   .btn.primary { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
   .btn.primary:hover { background: #333; }
-  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
   .btn.small { padding: 6px 14px; width: auto; font-size: 13px; }
   .btn.danger { border-color: #f5c2c2; color: #c62828; }
   .btn.danger:hover { background: #fdecea; }
-  .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1.5rem; }
-
-  .status-bar { font-size: 13px; padding: 10px 14px; border-radius: 8px; margin-bottom: 1rem; }
+  .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1rem; }
+  .status-bar { font-size: 13px; padding: 10px 14px; border-radius: 8px; margin-bottom: 1rem; line-height: 1.5; }
   .status-bar.loading { background: #e8f0fe; color: #1a56db; }
   .status-bar.success { background: #e8f5e9; color: #2e7d32; }
   .status-bar.error   { background: #fdecea; color: #c62828; }
   .status-bar.info    { background: #fff8e1; color: #856404; }
   .hidden { display: none !important; }
-  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; }
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; }
   @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* アップロードゾーン */
-  .upload-zone { border: 1.5px dashed #ccc; border-radius: 12px; padding: 1.5rem; text-align: center; cursor: pointer; background: #fff; transition: all 0.2s; }
-  .upload-zone:hover { border-color: #888; background: #fafafa; }
-  .upload-zone.has-file { border-color: #2e7d32; background: #f0fdf4; cursor: default; }
-  .upload-icon { font-size: 28px; margin-bottom: 6px; }
-  .upload-text { font-size: 14px; color: #555; }
-  .upload-sub { font-size: 12px; color: #aaa; margin-top: 4px; }
-
-  /* プログレスバー */
   .progress-wrap { background: #e8e8e8; border-radius: 99px; height: 6px; margin: 8px 0; overflow: hidden; }
   .progress-bar { height: 100%; background: #1a56db; border-radius: 99px; transition: width 0.3s; width: 0%; }
-
-  /* 結果テーブル */
-  .result-table-wrap { overflow-x: auto; }
+  .upload-zone { border: 1.5px dashed #ccc; border-radius: 12px; padding: 1.5rem; text-align: center; cursor: pointer; background: #fff; transition: all 0.2s; margin-bottom: 8px; }
+  .upload-zone:hover { border-color: #888; }
+  .upload-zone.has-file { border-color: #2e7d32; background: #f0fdf4; cursor: default; }
+  .upload-icon { font-size: 26px; margin-bottom: 6px; }
+  .upload-text { font-size: 14px; color: #555; }
+  .upload-sub { font-size: 12px; color: #aaa; margin-top: 4px; }
+  .result-table-wrap { overflow-x: auto; margin-bottom: 12px; }
   table.result-table { width: 100%; border-collapse: collapse; font-size: 12px; background: #fff; border-radius: 8px; overflow: hidden; border: 1px solid #e8e8e8; }
   table.result-table th { background: #f5f4f0; padding: 8px 10px; text-align: left; font-weight: 500; color: #555; border-bottom: 1px solid #e8e8e8; white-space: nowrap; }
-  table.result-table td { padding: 6px 8px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+  table.result-table td { padding: 6px 8px; border-bottom: 1px solid #f0f0f0; font-size: 12px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   table.result-table tr:last-child td { border-bottom: none; }
-  table.result-table input[type="text"] { width: 100%; min-width: 80px; border: none; background: transparent; font-size: 12px; font-family: inherit; color: #1a1a1a; padding: 2px 4px; border-radius: 4px; margin-bottom: 0; }
-  table.result-table input[type="text"]:focus { outline: none; background: #f5f4f0; }
   .row-num { color: #aaa; text-align: center; width: 28px; font-size: 11px; }
-
   .count-badge { font-size: 12px; background: #1a1a1a; color: #fff; border-radius: 999px; padding: 1px 8px; margin-left: 6px; }
-  .note { font-size: 12px; color: #888; line-height: 1.6; padding: 10px 12px; background: #fff; border-radius: 8px; border: 1px solid #e8e8e8; }
+  .note { font-size: 12px; color: #888; line-height: 1.6; padding: 10px 12px; background: #fff; border-radius: 8px; border: 1px solid #e8e8e8; margin-bottom: 8px; }
   .note a { color: #1a56db; }
   .badge { font-size: 11px; padding: 2px 9px; border-radius: 999px; background: #e8f5e9; color: #2e7d32; }
+  .badge.blue { background: #e8f0fe; color: #1a56db; }
   .history-item { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
   .history-item:last-child { border-bottom: none; }
   .history-name { font-weight: 500; }
   .history-sub { color: #888; font-size: 12px; }
-
-  /* 国税庁CSV 手順 */
-  .step-list { list-style: none; counter-reset: step; }
-  .step-list li { counter-increment: step; display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
-  .step-list li:last-child { border-bottom: none; }
-  .step-list li::before { content: counter(step); min-width: 22px; height: 22px; background: #1a1a1a; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media(max-width:560px){ .two-col { grid-template-columns: 1fr; } }
+  .sheet-info { background: #fff; border: 1px solid #e8e8e8; border-radius: 8px; padding: 12px 14px; font-size: 13px; margin-bottom: 8px; }
+  .sheet-info .label { font-size: 11px; color: #888; margin-bottom: 4px; }
+  .sheet-info .val { font-weight: 500; }
 </style>
 </head>
 <body>
@@ -95,7 +82,7 @@
     <h2>📋 営業先リスト化ツール</h2>
     <p>パスワードを入力してください</p>
     <div id="login-error" class="login-error hidden"></div>
-    <input type="password" id="login-password" placeholder="パスワード" onkeydown="if(event.key==='Enter') doLogin()" />
+    <input type="password" id="login-password" placeholder="パスワード" onkeydown="if(event.key==='Enter') doLogin()"/>
     <button class="btn primary" onclick="doLogin()"><span id="login-label">ログイン</span></button>
   </div>
 </div>
@@ -105,264 +92,186 @@
   <div class="header">
     <div>
       <h1>営業先リスト化ツール</h1>
-      <p>国税庁CSVで業種絞り込み → gBizINFOで連絡先補完 → スプレッドシートに保存</p>
+      <p>企業マスタを蓄積 → 業種別に営業リストへ転記</p>
     </div>
     <button class="btn danger small" onclick="doLogout()">ログアウト</button>
   </div>
 
   <div class="tab-row">
-    <button class="tab active" onclick="switchTab('main')">リスト取得</button>
+    <button class="tab active" onclick="switchTab('collect')">① 収集</button>
+    <button class="tab" onclick="switchTab('transfer')">② 転記</button>
     <button class="tab" onclick="switchTab('settings')">設定</button>
-    <button class="tab" onclick="switchTab('guide')">使い方</button>
     <button class="tab" onclick="switchTab('history')">履歴</button>
   </div>
 
-  <!-- メインタブ -->
-  <div id="tab-main">
-    <div id="status-bar" class="status-bar hidden"></div>
+  <!-- ① 収集タブ ──────────────────────────────────── -->
+  <div id="tab-collect">
+    <div id="status-collect" class="status-bar hidden"></div>
 
-    <!-- STEP 1: CSV -->
-    <div class="section">
+    <div class="note">
+      国税庁CSVで都道府県フィルタ → gBizINFOで業種・連絡先を補完 →
+      <strong>スプレッドシート①「企業マスタ」</strong>に蓄積します。月1回の実行を推奨。
+    </div>
+
+    <div class="section" style="margin-top:1rem">
       <div class="section-label">Step 1 ― 国税庁 法人番号CSVをアップロード</div>
       <div class="upload-zone" id="upload-zone" onclick="document.getElementById('csv-input').click()">
         <div class="upload-icon">📂</div>
         <div class="upload-text" id="upload-text">クリックしてCSVを選択</div>
         <div class="upload-sub">国税庁「全件データ」のCSVファイル（zip解凍後）</div>
       </div>
-      <input type="file" id="csv-input" accept=".csv" style="display:none" onchange="handleCSV(event)" />
-      <div id="csv-progress-wrap" class="progress-wrap hidden">
-        <div class="progress-bar" id="csv-progress"></div>
-      </div>
-      <div id="csv-stats" style="font-size:12px; color:#888; margin-top:6px;"></div>
+      <input type="file" id="csv-input" accept=".csv" style="display:none" onchange="handleCSV(event)"/>
+      <div id="csv-progress-wrap" class="progress-wrap hidden"><div class="progress-bar" id="csv-progress"></div></div>
+      <div id="csv-stats" style="font-size:12px;color:#888;margin-top:4px;"></div>
     </div>
 
-    <!-- STEP 2: 絞り込み -->
     <div class="section">
-      <div class="section-label">Step 2 ― 絞り込み条件</div>
-      <select id="industry-select">
-        <option value="">業種を選択してください</option>
-        <option value="01">01：農業</option>
-        <option value="02">02：林業</option>
-        <option value="03">03：漁業（水産養殖業を除く）</option>
-        <option value="04">04：水産養殖業</option>
-        <option value="05">05：鉱業、採石業、砂利採取業</option>
-        <option value="06">06：総合工事業</option>
-        <option value="07">07：職別工事業（設備工事業を除く）</option>
-        <option value="08">08：設備工事業</option>
-        <option value="09">09：食料品製造業</option>
-        <option value="10">10：飲料・たばこ・飼料製造業</option>
-        <option value="11">11：繊維工業</option>
-        <option value="12">12：木材・木製品製造業（家具を除く）</option>
-        <option value="13">13：家具・装備品製造業</option>
-        <option value="14">14：パルプ・紙・紙加工品製造業</option>
-        <option value="15">15：印刷・同関連業</option>
-        <option value="16">16：化学工業</option>
-        <option value="17">17：石油製品・石炭製品製造業</option>
-        <option value="18">18：プラスチック製品製造業</option>
-        <option value="19">19：ゴム製品製造業</option>
-        <option value="20">20：なめし革・同製品・毛皮製造業</option>
-        <option value="21">21：窯業・土石製品製造業</option>
-        <option value="22">22：鉄鋼業</option>
-        <option value="23">23：非鉄金属製造業</option>
-        <option value="24">24：金属製品製造業</option>
-        <option value="25">25：はん用機械器具製造業</option>
-        <option value="26">26：生産用機械器具製造業</option>
-        <option value="27">27：業務用機械器具製造業</option>
-        <option value="28">28：電子部品・デバイス・電子回路製造業</option>
-        <option value="29">29：電気機械器具製造業</option>
-        <option value="30">30：情報通信機械器具製造業</option>
-        <option value="31">31：輸送用機械器具製造業</option>
-        <option value="32">32：その他の製造業</option>
-        <option value="33">33：電気業</option>
-        <option value="34">34：ガス業</option>
-        <option value="35">35：熱供給業</option>
-        <option value="36">36：水道業</option>
-        <option value="37">37：通信業</option>
-        <option value="38">38：放送業</option>
-        <option value="39">39：情報サービス業</option>
-        <option value="40">40：インターネット附随サービス業</option>
-        <option value="41">41：映像・音声・文字情報制作業</option>
-        <option value="42">42：鉄道業</option>
-        <option value="43">43：道路旅客運送業</option>
-        <option value="44">44：道路貨物運送業</option>
-        <option value="45">45：水運業</option>
-        <option value="46">46：航空運輸業</option>
-        <option value="47">47：倉庫業</option>
-        <option value="48">48：運輸に附帯するサービス業</option>
-        <option value="49">49：郵便業（信書便事業を含む）</option>
-        <option value="50">50：各種商品卸売業</option>
-        <option value="51">51：繊維・衣服等卸売業</option>
-        <option value="52">52：飲食料品卸売業</option>
-        <option value="53">53：建築材料、鉱物・金属材料等卸売業</option>
-        <option value="54">54：機械器具卸売業</option>
-        <option value="55">55：その他の卸売業</option>
-        <option value="56">56：各種商品小売業</option>
-        <option value="57">57：織物・衣服・身の回り品小売業</option>
-        <option value="58">58：飲食料品小売業</option>
-        <option value="59">59：機械器具小売業</option>
-        <option value="60">60：その他の小売業</option>
-        <option value="61">61：無店舗小売業</option>
-        <option value="62">62：銀行業</option>
-        <option value="63">63：協同組織金融業</option>
-        <option value="64">64：貸金業、クレジットカード業等</option>
-        <option value="65">65：金融商品取引業、商品先物取引業</option>
-        <option value="66">66：補助的金融業等</option>
-        <option value="67">67：保険業（保険媒介代理業・保険サービス業を含む）</option>
-        <option value="68">68：不動産取引業</option>
-        <option value="69">69：不動産賃貸業・管理業</option>
-        <option value="70">70：物品賃貸業</option>
-        <option value="71">71：学術・開発研究機関</option>
-        <option value="72">72：専門サービス業（他に分類されないもの）</option>
-        <option value="73">73：広告業</option>
-        <option value="74">74：技術サービス業（他に分類されないもの）</option>
-        <option value="75">75：宿泊業</option>
-        <option value="76">76：飲食店</option>
-        <option value="77">77：持ち帰り・配達飲食サービス業</option>
-        <option value="78">78：洗濯・理容・美容・浴場業</option>
-        <option value="79">79：その他の生活関連サービス業</option>
-        <option value="80">80：娯楽業</option>
-        <option value="81">81：学校教育</option>
-        <option value="82">82：その他の教育、学習支援業</option>
-        <option value="83">83：医療業</option>
-        <option value="84">84：保健衛生</option>
-        <option value="85">85：社会保険・社会福祉・介護事業</option>
-        <option value="86">86：郵便局</option>
-        <option value="87">87：協同組合（他に分類されないもの）</option>
-        <option value="88">88：廃棄物処理業</option>
-        <option value="89">89：自動車整備業</option>
-        <option value="90">90：機械等修理業（別掲を除く）</option>
-        <option value="91">91：職業紹介・労働者派遣業</option>
-        <option value="92">92：その他の事業サービス業</option>
-        <option value="93">93：政治・経済・文化団体</option>
-        <option value="94">94：宗教</option>
-        <option value="95">95：その他のサービス業</option>
-        <option value="96">96：外国公務</option>
-        <option value="99">99：分類不能の産業</option>
+      <div class="section-label">Step 2 ― 都道府県を選択</div>
+      <select id="collect-pref">
+        <option value="">都道府県を選択してください</option>
+        <option value="北海道">北海道</option><option value="青森県">青森県</option><option value="岩手県">岩手県</option>
+        <option value="宮城県">宮城県</option><option value="秋田県">秋田県</option><option value="山形県">山形県</option>
+        <option value="福島県">福島県</option><option value="茨城県">茨城県</option><option value="栃木県">栃木県</option>
+        <option value="群馬県">群馬県</option><option value="埼玉県">埼玉県</option><option value="千葉県">千葉県</option>
+        <option value="東京都">東京都</option><option value="神奈川県">神奈川県</option><option value="新潟県">新潟県</option>
+        <option value="富山県">富山県</option><option value="石川県">石川県</option><option value="福井県">福井県</option>
+        <option value="山梨県">山梨県</option><option value="長野県">長野県</option><option value="岐阜県">岐阜県</option>
+        <option value="静岡県">静岡県</option><option value="愛知県">愛知県</option><option value="三重県">三重県</option>
+        <option value="滋賀県">滋賀県</option><option value="京都府">京都府</option><option value="大阪府">大阪府</option>
+        <option value="兵庫県">兵庫県</option><option value="奈良県">奈良県</option><option value="和歌山県">和歌山県</option>
+        <option value="鳥取県">鳥取県</option><option value="島根県">島根県</option><option value="岡山県">岡山県</option>
+        <option value="広島県">広島県</option><option value="山口県">山口県</option><option value="徳島県">徳島県</option>
+        <option value="香川県">香川県</option><option value="愛媛県">愛媛県</option><option value="高知県">高知県</option>
+        <option value="福岡県">福岡県</option><option value="佐賀県">佐賀県</option><option value="長崎県">長崎県</option>
+        <option value="熊本県">熊本県</option><option value="大分県">大分県</option><option value="宮崎県">宮崎県</option>
+        <option value="鹿児島県">鹿児島県</option><option value="沖縄県">沖縄県</option>
       </select>
-      <select id="pref-select">
-        <option value="">都道府県（全国）</option>
-        <option value="01">北海道</option><option value="02">青森県</option><option value="03">岩手県</option>
-        <option value="04">宮城県</option><option value="05">秋田県</option><option value="06">山形県</option>
-        <option value="07">福島県</option><option value="08">茨城県</option><option value="09">栃木県</option>
-        <option value="10">群馬県</option><option value="11">埼玉県</option><option value="12">千葉県</option>
-        <option value="13">東京都</option><option value="14">神奈川県</option><option value="15">新潟県</option>
-        <option value="16">富山県</option><option value="17">石川県</option><option value="18">福井県</option>
-        <option value="19">山梨県</option><option value="20">長野県</option><option value="21">岐阜県</option>
-        <option value="22">静岡県</option><option value="23">愛知県</option><option value="24">三重県</option>
-        <option value="25">滋賀県</option><option value="26">京都府</option><option value="27">大阪府</option>
-        <option value="28">兵庫県</option><option value="29">奈良県</option><option value="30">和歌山県</option>
-        <option value="31">鳥取県</option><option value="32">島根県</option><option value="33">岡山県</option>
-        <option value="34">広島県</option><option value="35">山口県</option><option value="36">徳島県</option>
-        <option value="37">香川県</option><option value="38">愛媛県</option><option value="39">高知県</option>
-        <option value="40">福岡県</option><option value="41">佐賀県</option><option value="42">長崎県</option>
-        <option value="43">熊本県</option><option value="44">大分県</option><option value="45">宮崎県</option>
-        <option value="46">鹿児島県</option><option value="47">沖縄県</option>
-      </select>
-      <input type="number" id="max-results" value="50" min="10" max="500" step="10" placeholder="最大取得件数（10〜500）" />
+    </div>
+
+    <div id="collect-progress-section" class="hidden" style="margin-bottom:1rem;">
+      <div style="font-size:13px;color:#555;margin-bottom:4px;" id="collect-progress-text">補完中...</div>
+      <div class="progress-wrap"><div class="progress-bar" id="collect-progress-bar"></div></div>
     </div>
 
     <div class="btn-grid">
-      <button class="btn" onclick="resetAll()">リセット</button>
-      <button class="btn primary" id="fetch-btn" onclick="doFetch()">
-        <span id="fetch-label">✦ リストを作成</span>
-      </button>
-    </div>
-
-    <div id="progress-section" class="hidden" style="margin-bottom:1.5rem;">
-      <div style="font-size:13px; color:#555; margin-bottom:6px;" id="progress-text">補完中...</div>
-      <div class="progress-wrap"><div class="progress-bar" id="enrich-progress"></div></div>
-    </div>
-
-    <!-- 結果 -->
-    <div id="result-section" class="hidden">
-      <div class="section">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-          <div class="section-label">取得データ（編集可能）<span class="count-badge" id="result-count">0</span></div>
-          <button class="btn small" onclick="document.getElementById('result-section').classList.add('hidden')">クリア</button>
-        </div>
-        <div class="result-table-wrap">
-          <table class="result-table">
-            <thead><tr>
-              <th class="row-num">#</th>
-              <th>登録日付</th><th>会社名</th><th>電話番号</th><th>FAX番号</th>
-              <th>メール</th><th>住所</th><th>HP</th>
-            </tr></thead>
-            <tbody id="result-tbody"></tbody>
-          </table>
-        </div>
-      </div>
-      <button class="btn primary" id="sheet-btn" onclick="writeToSheet()" style="margin-top:8px;">
-        <span id="sheet-label">📊 スプレッドシートに保存</span>
+      <button class="btn" onclick="resetCollect()">リセット</button>
+      <button class="btn primary" id="collect-btn" onclick="doCollect()">
+        <span id="collect-label">▶ 収集して企業マスタに蓄積</span>
       </button>
     </div>
   </div>
 
-  <!-- 設定タブ -->
+  <!-- ② 転記タブ ──────────────────────────────────── -->
+  <div id="tab-transfer" class="hidden">
+    <div id="status-transfer" class="status-bar hidden"></div>
+
+    <div class="note">
+      <strong>スプレッドシート①「企業マスタ」</strong>から業種・都道府県で絞り込み →
+      <strong>スプレッドシート②「営業リスト」</strong>に転記します。
+    </div>
+
+    <div class="section" style="margin-top:1rem">
+      <div class="section-label">絞り込み条件</div>
+      <div class="two-col">
+        <div>
+          <div style="font-size:12px;color:#888;margin-bottom:4px;">業種名（部分一致）</div>
+          <input type="text" id="transfer-industry" placeholder="例: 情報サービス、建設、製造"/>
+        </div>
+        <div>
+          <div style="font-size:12px;color:#888;margin-bottom:4px;">都道府県</div>
+          <select id="transfer-pref">
+            <option value="">全国</option>
+            <option value="北海道">北海道</option><option value="青森県">青森県</option><option value="岩手県">岩手県</option>
+            <option value="宮城県">宮城県</option><option value="秋田県">秋田県</option><option value="山形県">山形県</option>
+            <option value="福島県">福島県</option><option value="茨城県">茨城県</option><option value="栃木県">栃木県</option>
+            <option value="群馬県">群馬県</option><option value="埼玉県">埼玉県</option><option value="千葉県">千葉県</option>
+            <option value="東京都">東京都</option><option value="神奈川県">神奈川県</option><option value="新潟県">新潟県</option>
+            <option value="富山県">富山県</option><option value="石川県">石川県</option><option value="福井県">福井県</option>
+            <option value="山梨県">山梨県</option><option value="長野県">長野県</option><option value="岐阜県">岐阜県</option>
+            <option value="静岡県">静岡県</option><option value="愛知県">愛知県</option><option value="三重県">三重県</option>
+            <option value="滋賀県">滋賀県</option><option value="京都府">京都府</option><option value="大阪府">大阪府</option>
+            <option value="兵庫県">兵庫県</option><option value="奈良県">奈良県</option><option value="和歌山県">和歌山県</option>
+            <option value="鳥取県">鳥取県</option><option value="島根県">島根県</option><option value="岡山県">岡山県</option>
+            <option value="広島県">広島県</option><option value="山口県">山口県</option><option value="徳島県">徳島県</option>
+            <option value="香川県">香川県</option><option value="愛媛県">愛媛県</option><option value="高知県">高知県</option>
+            <option value="福岡県">福岡県</option><option value="佐賀県">佐賀県</option><option value="長崎県">長崎県</option>
+            <option value="熊本県">熊本県</option><option value="大分県">大分県</option><option value="宮崎県">宮崎県</option>
+            <option value="鹿児島県">鹿児島県</option><option value="沖縄県">沖縄県</option>
+          </select>
+        </div>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:4px;">転記先シート名（営業リストの業種シート名）</div>
+      <input type="text" id="transfer-sheet-name" placeholder="例: 情報サービス業_東京都"/>
+    </div>
+
+    <button class="btn primary" id="search-btn" onclick="doSearch()" style="margin-bottom:8px;">
+      <span id="search-label">🔍 企業マスタを検索</span>
+    </button>
+
+    <!-- 検索結果プレビュー -->
+    <div id="transfer-result" class="hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div class="section-label">検索結果<span class="count-badge" id="transfer-count">0</span></div>
+      </div>
+      <div class="result-table-wrap">
+        <table class="result-table">
+          <thead><tr>
+            <th class="row-num">#</th>
+            <th>法人名</th><th>業種名</th><th>電話番号</th><th>住所</th><th>HP</th>
+          </tr></thead>
+          <tbody id="transfer-tbody"></tbody>
+        </table>
+      </div>
+      <button class="btn primary" id="transfer-btn" onclick="doTransfer()" style="margin-top:8px;">
+        <span id="transfer-label">📊 営業リストに転記</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 設定タブ ──────────────────────────────────────── -->
   <div id="tab-settings" class="hidden">
     <div class="section">
       <div class="section-label">gBizINFO API設定</div>
-      <input type="text" id="gbiz-token" placeholder="gBizINFO APIトークン" />
+      <input type="text" id="gbiz-token" placeholder="gBizINFO APIトークン"/>
       <div class="note">未取得の場合は <a href="https://info.gbiz.go.jp/hojin/various_registration/form" target="_blank">gBizINFO申請ページ</a> から取得（無料）</div>
     </div>
     <div class="section">
-      <div class="section-label">Google Sheets 設定</div>
-      <input type="text" id="sheet-id" placeholder="スプレッドシートID" />
-      <input type="password" id="google-token" placeholder="Google OAuth アクセストークン" />
-      <div class="note">
-        <a href="https://developers.google.com/oauthplayground/" target="_blank">OAuth Playground</a> →
-        「Google Sheets API v4」→「.../auth/spreadsheets」で取得した access_token を貼り付けてください。
+      <div class="section-label">Google OAuth トークン</div>
+      <input type="password" id="google-token" placeholder="Google OAuth アクセストークン"/>
+      <div class="note"><a href="https://developers.google.com/oauthplayground/" target="_blank">OAuth Playground</a> → Google Sheets API v4 → .../auth/spreadsheets で取得</div>
+    </div>
+    <div class="section">
+      <div class="section-label">スプレッドシートID</div>
+      <div class="two-col">
+        <div>
+          <div style="font-size:12px;color:#888;margin-bottom:4px;">① 企業マスタ用</div>
+          <input type="text" id="master-sheet-id" placeholder="スプレッドシート①のID"/>
+        </div>
+        <div>
+          <div style="font-size:12px;color:#888;margin-bottom:4px;">② 営業リスト用</div>
+          <input type="text" id="sales-sheet-id" placeholder="スプレッドシート②のID"/>
+        </div>
       </div>
     </div>
     <button class="btn primary" onclick="saveSettings()">設定を保存</button>
   </div>
 
-  <!-- 使い方タブ -->
-  <div id="tab-guide" class="hidden">
-    <div class="section">
-      <div class="section-label">国税庁CSVのダウンロード手順</div>
-      <ol class="step-list">
-        <li><a href="https://www.nta.go.jp/taxes/tetsuzuki/mynumber/hojin/02.htm" target="_blank">国税庁 法人番号公表サイト</a> を開く</li>
-        <li>「全件データ」の最新版をダウンロード（zipファイル・約500MB）</li>
-        <li>zipを解凍するとCSVが出てくる</li>
-        <li>「Step 1」でそのCSVをアップロード</li>
-        <li>業種・都道府県を選んでリストを作成</li>
-      </ol>
-    </div>
-    <div class="section">
-      <div class="section-label">CSVの列構成（国税庁フォーマット）</div>
-      <div class="note">
-        列1: シーケンス番号 / 列2: 法人番号 / 列3: 処理区分 / 列4: 訂正区分 /
-        列5: 取消区分 / 列6: 法人種別 / 列7: 法人名 / 列8: 法人名フリガナ /
-        列9: 法人名英語 / 列10: 郵便番号 / 列11: 都道府県コード / 列12: 市区町村コード /
-        列13: 都道府県名 / 列14: 市区町村名 / 列15: 丁目番地等 / 列16〜: 業種コード等
-      </div>
-    </div>
-    <div class="section">
-      <div class="section-label">補完の仕組み</div>
-      <div class="note">
-        ブラウザ上でCSVを読み込んで業種・都道府県で絞り込み → 法人番号をサーバーに送信 →
-        gBizINFO APIで電話・FAX・メール・HPを取得 → スプレッドシートに保存。
-        CSVはサーバーに送信しないためメモリ消費なし。
-      </div>
-    </div>
-  </div>
-
-  <!-- 履歴タブ -->
+  <!-- 履歴タブ ──────────────────────────────────────── -->
   <div id="tab-history" class="hidden">
     <div class="section">
-      <div class="section-label">保存済みリスト</div>
-      <div id="history-list"><div style="font-size:13px; color:#aaa; padding:1rem 0;">まだ保存したリストがありません</div></div>
+      <div class="section-label">操作履歴</div>
+      <div id="history-list"><div style="font-size:13px;color:#aaa;padding:1rem 0;">まだ操作履歴がありません</div></div>
     </div>
   </div>
 </div>
 
 <script>
 const API_BASE = "";
-const FIELDS   = ["登録日付","会社名","電話番号","FAX番号","メールアドレス","住所","HP"];
-let historyLog  = [];
-let csvRows     = [];   // ブラウザ上で保持するCSVの絞り込み結果
+let csvRows    = [];
+let historyLog = [];
+let searchResults = [];
 
-// ── 認証 ──────────────────────────────────────────────
+// ── 認証 ─────────────────────────────────────────────
 async function doLogin() {
   const pw = document.getElementById('login-password').value;
   const label = document.getElementById('login-label');
@@ -385,7 +294,6 @@ async function doLogin() {
     label.textContent = 'ログイン';
   }
 }
-
 async function doLogout() {
   await fetch(`${API_BASE}/logout`, { method: 'POST', credentials: 'include' });
   document.getElementById('main-app').classList.add('hidden');
@@ -393,246 +301,299 @@ async function doLogout() {
   document.getElementById('login-password').value = '';
 }
 
-// ── 設定 ──────────────────────────────────────────────
+// ── 設定 ─────────────────────────────────────────────
 function loadSettings() {
-  const s = JSON.parse(localStorage.getItem('sales_settings') || '{}');
-  if (s.gbizToken)   document.getElementById('gbiz-token').value   = s.gbizToken;
-  if (s.sheetId)     document.getElementById('sheet-id').value     = s.sheetId;
-  if (s.googleToken) document.getElementById('google-token').value = s.googleToken;
-  historyLog = JSON.parse(localStorage.getItem('sales_history') || '[]');
+  const s = JSON.parse(localStorage.getItem('sales_v2_settings') || '{}');
+  if (s.gbizToken)     document.getElementById('gbiz-token').value     = s.gbizToken;
+  if (s.googleToken)   document.getElementById('google-token').value   = s.googleToken;
+  if (s.masterSheetId) document.getElementById('master-sheet-id').value = s.masterSheetId;
+  if (s.salesSheetId)  document.getElementById('sales-sheet-id').value  = s.salesSheetId;
+  historyLog = JSON.parse(localStorage.getItem('sales_v2_history') || '[]');
   renderHistory();
 }
-
 function saveSettings() {
-  localStorage.setItem('sales_settings', JSON.stringify({
-    gbizToken:   document.getElementById('gbiz-token').value,
-    sheetId:     document.getElementById('sheet-id').value,
-    googleToken: document.getElementById('google-token').value,
+  localStorage.setItem('sales_v2_settings', JSON.stringify({
+    gbizToken:     document.getElementById('gbiz-token').value,
+    googleToken:   document.getElementById('google-token').value,
+    masterSheetId: document.getElementById('master-sheet-id').value,
+    salesSheetId:  document.getElementById('sales-sheet-id').value,
   }));
-  setStatus('設定を保存しました', 'success');
-  setTimeout(() => setStatus('', ''), 2000);
-  switchTab('main');
+  setStatus('collect', '設定を保存しました', 'success');
+  setTimeout(() => setStatus('collect','',''), 2000);
+  switchTab('collect');
 }
 
-// ── タブ ──────────────────────────────────────────────
+// ── タブ ─────────────────────────────────────────────
 function switchTab(name) {
-  ['main','settings','guide','history'].forEach((t, i) => {
+  ['collect','transfer','settings','history'].forEach((t,i) => {
     document.getElementById('tab-'+t).classList.add('hidden');
     document.querySelectorAll('.tab')[i].classList.remove('active');
   });
   document.getElementById('tab-'+name).classList.remove('hidden');
-  document.querySelectorAll('.tab')[['main','settings','guide','history'].indexOf(name)].classList.add('active');
+  document.querySelectorAll('.tab')[['collect','transfer','settings','history'].indexOf(name)].classList.add('active');
 }
 
-function setStatus(msg, type) {
-  const bar = document.getElementById('status-bar');
+function setStatus(tab, msg, type) {
+  const bar = document.getElementById(`status-${tab}`);
   if (!msg) { bar.classList.add('hidden'); return; }
   bar.innerHTML = msg;
   bar.className = 'status-bar ' + type;
   bar.classList.remove('hidden');
 }
 
-function resetAll() {
+// ── CSV読み込み（ブラウザ側） ─────────────────────────
+function handleCSV(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  setStatus('collect', '<span class="spinner"></span> CSVを読み込んでいます...', 'loading');
+  document.getElementById('csv-progress-wrap').classList.remove('hidden');
+
+  const reader = new FileReader();
+  reader.onprogress = (e) => {
+    if (e.lengthComputable)
+      document.getElementById('csv-progress').style.width = Math.round(e.loaded/e.total*100) + '%';
+  };
+  reader.onload = (e) => {
+    const lines = e.target.result.split('\n');
+    csvRows = [];
+    for (let i = 1; i < lines.length; i++) {
+      const cols = lines[i].split(',');
+      if (cols.length < 15) continue;
+      const corpNum = cols[1]?.replace(/"/g,'').trim();
+      const name    = cols[6]?.replace(/"/g,'').trim();
+      const pref    = cols[12]?.replace(/"/g,'').trim(); // 列13: 都道府県名
+      if (!corpNum || corpNum.length !== 13) continue;
+      csvRows.push({ corp_num: corpNum, name, pref });
+    }
+    document.getElementById('upload-zone').classList.add('has-file');
+    document.getElementById('upload-text').textContent = `✓ ${file.name}`;
+    document.getElementById('csv-progress').style.width = '100%';
+    document.getElementById('csv-stats').textContent = `${csvRows.length.toLocaleString()} 件読み込み完了`;
+    setStatus('collect', `✓ CSV読み込み完了（${csvRows.length.toLocaleString()}件）`, 'success');
+  };
+  reader.onerror = () => setStatus('collect', 'CSVの読み込みに失敗しました', 'error');
+  // 国税庁CSVはShift-JISの場合があるためUTF-8で試みる
+  reader.readAsText(file, 'UTF-8');
+}
+
+function resetCollect() {
   csvRows = [];
   document.getElementById('upload-zone').classList.remove('has-file');
   document.getElementById('upload-text').textContent = 'クリックしてCSVを選択';
   document.getElementById('csv-stats').textContent = '';
   document.getElementById('csv-progress-wrap').classList.add('hidden');
   document.getElementById('csv-input').value = '';
-  document.getElementById('result-section').classList.add('hidden');
-  document.getElementById('progress-section').classList.add('hidden');
-  setStatus('', '');
+  document.getElementById('collect-progress-section').classList.add('hidden');
+  setStatus('collect', '', '');
 }
 
-// ── CSVをブラウザで読み込む ────────────────────────────
-function handleCSV(event) {
-  const file = event.target.files[0];
-  if (!file) return;
+// ── 収集処理 ─────────────────────────────────────────
+async function doCollect() {
+  const prefName   = document.getElementById('collect-pref').value;
+  const gbizToken  = document.getElementById('gbiz-token').value.trim();
+  const masterId   = document.getElementById('master-sheet-id').value.trim();
+  const googleToken = document.getElementById('google-token').value.trim();
 
-  setStatus('<span class="spinner"></span> CSVを読み込んでいます...', 'loading');
-  document.getElementById('csv-progress-wrap').classList.remove('hidden');
+  if (!csvRows.length)  { setStatus('collect', 'まず国税庁CSVをアップロードしてください', 'error'); return; }
+  if (!prefName)        { setStatus('collect', '都道府県を選択してください', 'error'); return; }
+  if (!gbizToken)       { setStatus('collect', '設定タブでgBizINFO APIトークンを入力してください', 'error'); return; }
+  if (!masterId)        { setStatus('collect', '設定タブでスプレッドシート①のIDを入力してください', 'error'); return; }
+  if (!googleToken)     { setStatus('collect', '設定タブでGoogle OAuthトークンを入力してください', 'error'); return; }
 
-  const reader = new FileReader();
-  reader.onprogress = (e) => {
-    if (e.lengthComputable) {
-      const pct = Math.round(e.loaded / e.total * 100);
-      document.getElementById('csv-progress').style.width = pct + '%';
-    }
-  };
-  reader.onload = (e) => {
-    const text  = e.target.result;
-    const lines = text.split('\n');
-    // 国税庁CSVは BOM付きUTF-8 または Shift_JIS の場合あり
-    // FileReaderはreadAsTextでUTF-8として読む。列は「,」区切り
-    let count = 0;
-    csvRows = [];
-    for (let i = 1; i < lines.length; i++) {   // 1行目はヘッダー
-      const cols = lines[i].split(',');
-      if (cols.length < 15) continue;
-      csvRows.push({
-        corp_num:  cols[1]?.replace(/"/g,'').trim(),   // 列2: 法人番号
-        name:      cols[6]?.replace(/"/g,'').trim(),   // 列7: 法人名
-        pref_code: cols[10]?.replace(/"/g,'').trim(),  // 列11: 都道府県コード
-        industry:  cols[21]?.replace(/"/g,'').trim(),  // 列22: 業種コード（国税庁）
-        address:   ((cols[12]||'') + (cols[13]||'') + (cols[14]||'')).replace(/"/g,'').trim(),
-      });
-      count++;
-    }
-    document.getElementById('upload-zone').classList.add('has-file');
-    document.getElementById('upload-text').textContent = `✓ ${file.name}`;
-    document.getElementById('csv-stats').textContent   = `${count.toLocaleString()} 件読み込み完了`;
-    document.getElementById('csv-progress').style.width = '100%';
-    setStatus(`✓ CSV読み込み完了（${count.toLocaleString()}件）`, 'success');
-  };
-  reader.onerror = () => setStatus('CSVの読み込みに失敗しました', 'error');
-  reader.readAsText(file, 'UTF-8');
-}
-
-// ── メイン処理 ────────────────────────────────────────
-async function doFetch() {
-  const industryCode = document.getElementById('industry-select').value;
-  const prefCode     = document.getElementById('pref-select').value;
-  const gbizToken    = document.getElementById('gbiz-token').value.trim();
-  const maxResults   = parseInt(document.getElementById('max-results').value) || 50;
-
-  if (!csvRows.length)  { setStatus('まず国税庁CSVをアップロードしてください', 'error'); return; }
-  if (!industryCode)    { setStatus('業種を選択してください', 'error'); return; }
-  if (!gbizToken)       { setStatus('設定タブでgBizINFO APIトークンを入力してください', 'error'); return; }
-
-  // ── ブラウザ側でCSVをフィルタリング ──
-  let filtered = csvRows.filter(r => {
-    const indMatch  = !industryCode || r.industry === industryCode;
-    const prefMatch = !prefCode     || r.pref_code === prefCode;
-    return indMatch && prefMatch && r.corp_num;
-  }).slice(0, maxResults);
-
+  // CSVを都道府県でフィルタ
+  const filtered = csvRows.filter(r => r.pref === prefName);
   if (!filtered.length) {
-    setStatus('該当する企業が見つかりませんでした。業種コードや都道府県を確認してください。', 'info');
+    setStatus('collect', `「${prefName}」の企業がCSVに見つかりませんでした。都道府県名の表記を確認してください。`, 'info');
     return;
   }
 
-  setStatus(`${filtered.length}件を抽出しました。gBizINFOで連絡先を補完中...`, 'loading');
-  document.getElementById('progress-section').classList.remove('hidden');
-  document.getElementById('fetch-btn').disabled = true;
-  document.getElementById('fetch-label').innerHTML = '<span class="spinner"></span> 処理中...';
+  document.getElementById('collect-btn').disabled = true;
+  document.getElementById('collect-label').innerHTML = '<span class="spinner"></span> 処理中...';
+  document.getElementById('collect-progress-section').classList.remove('hidden');
+  setStatus('collect', `${filtered.length.toLocaleString()}件を抽出。gBizINFOで補完中...`, 'loading');
 
-  // ── サーバーにバッチ送信（20件ずつ）──
-  const batchSize = 20;
-  const allResults = [];
   const namesMap = {};
-  const addressMap = {};
-  filtered.forEach(r => {
-    namesMap[r.corp_num]   = r.name;
-    addressMap[r.corp_num] = r.address;
-  });
+  filtered.forEach(r => { namesMap[r.corp_num] = r.name; });
 
-  for (let i = 0; i < filtered.length; i += batchSize) {
-    const batch     = filtered.slice(i, i + batchSize);
+  const BATCH = 50;
+  let totalWritten = 0;
+
+  for (let i = 0; i < filtered.length; i += BATCH) {
+    const batch     = filtered.slice(i, i + BATCH);
     const corp_nums = batch.map(r => r.corp_num);
     const pct       = Math.round((i / filtered.length) * 100);
+    document.getElementById('collect-progress-bar').style.width = pct + '%';
+    document.getElementById('collect-progress-text').textContent =
+      `gBizINFO補完中... ${Math.min(i + BATCH, filtered.length).toLocaleString()} / ${filtered.length.toLocaleString()}件`;
 
-    document.getElementById('enrich-progress').style.width = pct + '%';
-    document.getElementById('progress-text').textContent =
-      `gBizINFO補完中... ${i + batch.length} / ${filtered.length}件`;
-
+    // gBizINFO補完
+    let enriched = [];
     try {
-      const res  = await fetch(`${API_BASE}/api/enrich`, {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        credentials: 'include',
-        body: JSON.stringify({ corp_nums, gbiz_token: gbizToken, names: namesMap, addresses: addressMap })
+      const r1 = await fetch(`${API_BASE}/api/enrich`, {
+        method: 'POST', headers: {'Content-Type':'application/json'}, credentials: 'include',
+        body: JSON.stringify({ corp_nums, gbiz_token: gbizToken, names: namesMap, pref_name: prefName })
       });
-      const data = await res.json();
-      if (res.status === 401) { doLogout(); return; }
-      if (!res.ok) throw new Error(data.error || 'APIエラー');
-      allResults.push(...data.results);
+      if (r1.status === 401) { doLogout(); return; }
+      const d1 = await r1.json();
+      if (!r1.ok) throw new Error(d1.error);
+      enriched = d1.results;
     } catch(err) {
-      setStatus('エラー: ' + err.message, 'error');
+      setStatus('collect', 'gBizINFOエラー: ' + err.message, 'error');
+      break;
+    }
+
+    // 企業マスタに書き込み
+    const rows = enriched.map(c => [
+      c['取得日'], c['法人番号'], c['法人名'], c['業種コード'], c['業種名'],
+      c['電話番号'], c['FAX番号'], c['住所'], c['HP'], c['都道府県']
+    ]);
+    try {
+      const r2 = await fetch(`${API_BASE}/api/write_master`, {
+        method: 'POST', headers: {'Content-Type':'application/json'}, credentials: 'include',
+        body: JSON.stringify({ token: googleToken, sheet_id: masterId, rows })
+      });
+      const d2 = await r2.json();
+      if (!r2.ok) throw new Error(d2.error);
+      totalWritten += d2.written;
+    } catch(err) {
+      setStatus('collect', 'スプレッドシート書き込みエラー: ' + err.message, 'error');
       break;
     }
   }
 
-  document.getElementById('enrich-progress').style.width = '100%';
-  document.getElementById('progress-section').classList.add('hidden');
-  renderResultTable(allResults);
-  setStatus(`✓ ${allResults.length}件の連絡先補完が完了しました`, 'success');
-  document.getElementById('fetch-btn').disabled = false;
-  document.getElementById('fetch-label').textContent = '✦ リストを作成';
+  document.getElementById('collect-progress-bar').style.width = '100%';
+  document.getElementById('collect-progress-section').classList.add('hidden');
+  document.getElementById('collect-btn').disabled = false;
+  document.getElementById('collect-label').textContent = '▶ 収集して企業マスタに蓄積';
+
+  addHistory({ type: '収集', label: prefName, count: totalWritten, date: new Date().toLocaleDateString('ja-JP') });
+  setStatus('collect', `✓ ${prefName} の企業 ${totalWritten.toLocaleString()}件 を企業マスタに保存しました`, 'success');
 }
 
-// ── 結果テーブル ──────────────────────────────────────
-function renderResultTable(results) {
-  const tbody = document.getElementById('result-tbody');
-  tbody.innerHTML = results.map((c, i) => `
-    <tr>
-      <td class="row-num">${i+1}</td>
-      ${FIELDS.map(f => `<td><input type="text" id="r${i}_${f}" value="${(c[f]||'').replace(/"/g,'&quot;')}" placeholder="-" /></td>`).join('')}
-    </tr>
-  `).join('');
-  document.getElementById('result-count').textContent = results.length;
-  document.getElementById('result-section').classList.remove('hidden');
-}
+// ── 転記処理 ─────────────────────────────────────────
+async function doSearch() {
+  const industryKw  = document.getElementById('transfer-industry').value.trim();
+  const pref        = document.getElementById('transfer-pref').value;
+  const googleToken = document.getElementById('google-token').value.trim();
+  const masterSheetId = document.getElementById('master-sheet-id').value.trim();
 
-// ── スプレッドシートに保存 ────────────────────────────
-async function writeToSheet() {
-  const token     = document.getElementById('google-token').value.trim();
-  const sheetId   = document.getElementById('sheet-id').value.trim();
-  const sel       = document.getElementById('industry-select');
-  const sheetName = sel.options[sel.selectedIndex]?.text?.replace(/^\d+：/, '').trim() || '営業先リスト';
+  if (!googleToken)   { setStatus('transfer', '設定タブでGoogle OAuthトークンを入力してください', 'error'); return; }
+  if (!masterSheetId) { setStatus('transfer', '設定タブでスプレッドシート①のIDを入力してください', 'error'); return; }
 
-  if (!token)   { setStatus('設定タブでGoogle OAuthトークンを入力してください', 'error'); return; }
-  if (!sheetId) { setStatus('設定タブでスプレッドシートIDを入力してください', 'error'); return; }
-
-  const rowCount = document.getElementById('result-tbody').querySelectorAll('tr').length;
-  if (!rowCount) return;
-
-  const btn   = document.getElementById('sheet-btn');
-  const label = document.getElementById('sheet-label');
-  btn.disabled = true;
-  label.innerHTML = '<span class="spinner"></span> 保存中...';
-  setStatus('スプレッドシートに書き込んでいます...', 'loading');
-
-  const rows = Array.from({length: rowCount}, (_, i) =>
-    FIELDS.map(f => document.getElementById(`r${i}_${f}`)?.value || '')
-  );
+  document.getElementById('search-btn').disabled = true;
+  document.getElementById('search-label').innerHTML = '<span class="spinner"></span> 検索中...';
+  setStatus('transfer', '企業マスタを検索中...', 'loading');
 
   try {
-    const res  = await fetch(`${API_BASE}/write_sheet_batch`, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      credentials: 'include',
-      body: JSON.stringify({ token, sheet_id: sheetId, sheet_name: sheetName, rows })
+    const res  = await fetch(`${API_BASE}/api/read_master`, {
+      method: 'POST', headers: {'Content-Type':'application/json'}, credentials: 'include',
+      body: JSON.stringify({ token: googleToken, sheet_id: masterSheetId, pref: pref })
     });
-    const data = await res.json();
     if (res.status === 401) { doLogout(); return; }
-    if (!res.ok) throw new Error(data.error || '書き込みエラー');
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
 
-    historyLog.unshift({ industry: sheetName, count: data.written, mode: data.mode, date: new Date().toLocaleDateString('ja-JP') });
-    localStorage.setItem('sales_history', JSON.stringify(historyLog.slice(0, 50)));
-    renderHistory();
+    // 業種名で部分一致フィルタ（クライアント側）
+    searchResults = industryKw
+      ? data.rows.filter(r => r['業種名'] && r['業種名'].includes(industryKw))
+      : data.rows;
 
-    setStatus(`✓ ${data.written}件を「${sheetName}」シートに${data.mode}しました`, 'success');
-    label.textContent = `✓ ${data.written}件 保存完了`;
-    setTimeout(() => { label.textContent = '📊 スプレッドシートに保存'; }, 3000);
+    renderTransferTable(searchResults);
+    setStatus('transfer', `✓ ${searchResults.length.toLocaleString()}件 ヒットしました`, 'success');
+
+    // シート名を自動設定
+    if (!document.getElementById('transfer-sheet-name').value) {
+      const label = (industryKw || '全業種') + (pref ? `_${pref}` : '');
+      document.getElementById('transfer-sheet-name').value = label;
+    }
   } catch(err) {
-    setStatus('保存エラー: ' + err.message, 'error');
+    setStatus('transfer', 'エラー: ' + err.message, 'error');
   } finally {
-    btn.disabled = false;
+    document.getElementById('search-btn').disabled = false;
+    document.getElementById('search-label').textContent = '🔍 企業マスタを検索';
   }
 }
 
-// ── 履歴 ──────────────────────────────────────────────
+function renderTransferTable(rows) {
+  const tbody = document.getElementById('transfer-tbody');
+  tbody.innerHTML = rows.slice(0, 100).map((r, i) => `
+    <tr>
+      <td class="row-num">${i+1}</td>
+      <td title="${r['法人名']}">${r['法人名']||'-'}</td>
+      <td>${r['業種名']||'-'}</td>
+      <td>${r['電話番号']||'-'}</td>
+      <td title="${r['住所']}">${(r['住所']||'-').substring(0,16)}</td>
+      <td>${r['HP'] ? `<a href="${r['HP']}" target="_blank">リンク</a>` : '-'}</td>
+    </tr>
+  `).join('');
+  document.getElementById('transfer-count').textContent = rows.length;
+  document.getElementById('transfer-result').classList.remove('hidden');
+}
+
+async function doTransfer() {
+  const sheetName   = document.getElementById('transfer-sheet-name').value.trim();
+  const googleToken = document.getElementById('google-token').value.trim();
+  const salesId     = document.getElementById('sales-sheet-id').value.trim();
+
+  if (!sheetName)   { setStatus('transfer', '転記先シート名を入力してください', 'error'); return; }
+  if (!googleToken) { setStatus('transfer', '設定タブでGoogle OAuthトークンを入力してください', 'error'); return; }
+  if (!salesId)     { setStatus('transfer', '設定タブでスプレッドシート②のIDを入力してください', 'error'); return; }
+  if (!searchResults.length) { setStatus('transfer', '先に検索を実行してください', 'error'); return; }
+
+  document.getElementById('transfer-btn').disabled = true;
+  document.getElementById('transfer-label').innerHTML = '<span class="spinner"></span> 転記中...';
+  setStatus('transfer', 'スプレッドシート②に書き込んでいます...', 'loading');
+
+  const today = new Date().toLocaleDateString('ja-JP');
+  const rows  = searchResults.map(r => [
+    today,
+    r['法人名']   || '',
+    r['電話番号'] || '',
+    r['FAX番号']  || '',
+    '',              // メール（現在空欄）
+    r['住所']     || '',
+    r['HP']       || '',
+  ]);
+
+  try {
+    const res  = await fetch(`${API_BASE}/api/write_sales`, {
+      method: 'POST', headers: {'Content-Type':'application/json'}, credentials: 'include',
+      body: JSON.stringify({ token: googleToken, sheet_id: salesId, sheet_name: sheetName, rows })
+    });
+    if (res.status === 401) { doLogout(); return; }
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+
+    addHistory({ type: '転記', label: sheetName, count: data.written, mode: data.mode, date: today });
+    setStatus('transfer', `✓ ${data.written}件を「${sheetName}」シートに${data.mode}しました`, 'success');
+    document.getElementById('transfer-label').textContent = `✓ ${data.written}件 転記完了`;
+    setTimeout(() => { document.getElementById('transfer-label').textContent = '📊 営業リストに転記'; }, 3000);
+  } catch(err) {
+    setStatus('transfer', '転記エラー: ' + err.message, 'error');
+  } finally {
+    document.getElementById('transfer-btn').disabled = false;
+  }
+}
+
+// ── 履歴 ─────────────────────────────────────────────
+function addHistory(entry) {
+  historyLog.unshift(entry);
+  localStorage.setItem('sales_v2_history', JSON.stringify(historyLog.slice(0, 100)));
+  renderHistory();
+}
 function renderHistory() {
   const list = document.getElementById('history-list');
   if (!historyLog.length) {
-    list.innerHTML = '<div style="font-size:13px;color:#aaa;padding:1rem 0;">まだ保存したリストがありません</div>';
+    list.innerHTML = '<div style="font-size:13px;color:#aaa;padding:1rem 0;">まだ操作履歴がありません</div>';
     return;
   }
   list.innerHTML = historyLog.slice(0, 30).map(h => `
     <div class="history-item">
       <div>
-        <div class="history-name">${h.industry}</div>
-        <div class="history-sub">${h.count}件 · ${h.mode} · ${h.date}</div>
+        <div class="history-name">${h.label}</div>
+        <div class="history-sub">${h.count}件 · ${h.type}${h.mode ? ' · '+h.mode : ''} · ${h.date}</div>
       </div>
-      <span class="badge">保存済み</span>
+      <span class="badge ${h.type==='転記'?'blue':''}">${h.type}</span>
     </div>
   `).join('');
 }
