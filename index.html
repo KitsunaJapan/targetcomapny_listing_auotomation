@@ -381,43 +381,82 @@ function parseCSVText(text) {
   }
 }
 
-function handleCSV(event) {
+async function handleCSV(event) {
   const file = event.target.files[0];
   if (!file) return;
-  setStatus('collect', '<span class="spinner"></span> CSVを読み込んでいます...', 'loading');
+  setStatus('collect', '<span class="spinner"></span> CSVを読み込んでいます（大きいファイルは数分かかります）...', 'loading');
   document.getElementById('csv-progress-wrap').classList.remove('hidden');
+  csvRows = [];
 
-  // まずShift-JISで試みる → 文字化けならUTF-8で再試行
-  const tryRead = (encoding) => {
-    const reader = new FileReader();
-    reader.onprogress = (e) => {
-      if (e.lengthComputable)
-        document.getElementById('csv-progress').style.width = Math.round(e.loaded/e.total*100) + '%';
-    };
-    reader.onload = (e) => {
-      const text = e.target.result;
-      // 文字化け検出: Shift-JISで読んで都道府県名に「?」や「□」が多ければUTF-8で再試行
-      const garbled = (text.match(/[\uFFFD?□]/g) || []).length > 10;
-      if (garbled && encoding === 'Shift-JIS') {
-        tryRead('UTF-8');
-        return;
-      }
-      parseCSVText(text);
-      document.getElementById('upload-zone').classList.add('has-file');
-      document.getElementById('upload-text').textContent = `✓ ${file.name}（${encoding}）`;
-      document.getElementById('csv-progress').style.width = '100%';
-      document.getElementById('csv-stats').textContent = `${csvRows.length.toLocaleString()} 件読み込み完了`;
-      if (csvRows.length === 0) {
-        setStatus('collect', '⚠️ 0件でした。国税庁の全件CSVか確認してください。', 'error');
-      } else {
-        setStatus('collect', `✓ CSV読み込み完了（${csvRows.length.toLocaleString()}件 / ${encoding}）`, 'success');
-      }
-    };
-    reader.onerror = () => setStatus('collect', 'CSVの読み込みに失敗しました', 'error');
-    reader.readAsText(file, encoding);
-  };
+  try {
+    // ストリーミングで読み込み（1GBでもメモリに全展開しない）
+    const decoder = new TextDecoder('shift-jis');
+    const stream  = file.stream();
+    const reader  = stream.getReader();
+    let leftover  = '';
+    let bytesRead = 0;
+    let lineCount = 0;
 
-  tryRead('Shift-JIS');
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      bytesRead += value.byteLength;
+      const pct = Math.min(99, Math.round(bytesRead / file.size * 100));
+      document.getElementById('csv-progress').style.width = pct + '%';
+
+      // チャンクをShift-JISでデコードして行ごとに処理
+      const chunk = leftover + decoder.decode(value, { stream: true });
+      const lines = chunk.split('\n');
+      leftover = lines.pop(); // 最後の不完全行は次のチャンクへ
+
+      for (const line of lines) {
+        lineCount++;
+        if (lineCount === 1) continue; // ヘッダースキップ
+        if (!line.trim()) continue;
+        const cols = parseCSVLine(line);
+        if (cols.length < 10) continue;
+        const corpNum = cols[1];
+        const name    = cols[6];
+        const pref    = cols[9];
+        if (!corpNum || corpNum.length !== 13) continue;
+        csvRows.push({ corp_num: corpNum, name, pref });
+      }
+
+      // 進捗を画面に反映（10万件ごと）
+      if (csvRows.length % 100000 === 0 && csvRows.length > 0) {
+        document.getElementById('csv-stats').textContent =
+          `読み込み中... ${csvRows.length.toLocaleString()} 件`;
+        await new Promise(r => setTimeout(r, 0)); // UIを更新させる
+      }
+    }
+
+    // 残った最終行を処理
+    if (leftover.trim()) {
+      const cols = parseCSVLine(leftover);
+      if (cols.length >= 10) {
+        const corpNum = cols[1];
+        const name    = cols[6];
+        const pref    = cols[9];
+        if (corpNum && corpNum.length === 13) {
+          csvRows.push({ corp_num: corpNum, name, pref });
+        }
+      }
+    }
+
+    document.getElementById('csv-progress').style.width = '100%';
+    document.getElementById('upload-zone').classList.add('has-file');
+    document.getElementById('upload-text').textContent = `✓ ${file.name}`;
+    document.getElementById('csv-stats').textContent = `${csvRows.length.toLocaleString()} 件読み込み完了`;
+
+    if (csvRows.length === 0) {
+      setStatus('collect', '⚠️ 0件でした。国税庁の全件CSVか確認してください。', 'error');
+    } else {
+      setStatus('collect', `✓ CSV読み込み完了（${csvRows.length.toLocaleString()}件）`, 'success');
+    }
+  } catch(err) {
+    setStatus('collect', 'CSVの読み込みに失敗しました: ' + err.message, 'error');
+  }
 }
 
 function resetCollect() {
