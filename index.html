@@ -342,17 +342,40 @@ function setStatus(tab, msg, type) {
 }
 
 // ── CSV読み込み（ブラウザ側） ─────────────────────────
+function parseCSVLine(line) {
+  // RFC4180準拠のCSVパーサー（クォート・カンマ・改行を正しく処理）
+  const result = [];
+  let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (inQ) {
+      if (ch === '"') {
+        if (line[i+1] === '"') { cur += '"'; i++; } // エスケープ ""
+        else inQ = false;
+      } else {
+        cur += ch;
+      }
+    } else {
+      if (ch === '"') { inQ = true; }
+      else if (ch === ',') { result.push(cur.trim()); cur = ''; }
+      else { cur += ch; }
+    }
+  }
+  result.push(cur.trim());
+  return result;
+}
+
 function parseCSVText(text) {
-  const lines = text.split('\n');
+  // 改行コード統一（\r\n / \r / \n すべて対応）
+  const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
   csvRows = [];
   for (let i = 1; i < lines.length; i++) {
-    // クォート対応の列分割
-    const cols = lines[i].match(/("(?:[^"]|"")*"|[^,]*)/g) || [];
-    const clean = cols.map(c => c.replace(/^"|"$/g,'').replace(/""/g,'"').trim());
-    if (clean.length < 13) continue;
-    const corpNum = clean[1];  // 列2: 法人番号（13桁）
-    const name    = clean[6];  // 列7: 法人名
-    const pref    = clean[9];  // 列10: 都道府県名（実データ確認済み）
+    if (!lines[i].trim()) continue;
+    const cols = parseCSVLine(lines[i]);
+    if (cols.length < 10) continue;
+    const corpNum = cols[1];  // 列2: 法人番号（13桁）
+    const name    = cols[6];  // 列7: 法人名
+    const pref    = cols[9];  // 列10: 都道府県名
     if (!corpNum || corpNum.length !== 13) continue;
     csvRows.push({ corp_num: corpNum, name, pref });
   }
