@@ -19,7 +19,9 @@ SHEET_HEADERS = [
 
 
 def check_auth():
-    return session.get("authenticated") is True
+    # X-App-Passwordヘッダーでパスワードを毎回検証（セッション不要）
+    pw = request.headers.get("X-App-Password", "")
+    return pw == APP_PASSWORD
 
 
 @app.route("/")
@@ -31,14 +33,12 @@ def index():
 def login():
     data = request.json
     if data.get("password") == APP_PASSWORD:
-        session["authenticated"] = True
         return jsonify({"success": True})
     return jsonify({"error": "パスワードが違います"}), 401
 
 
 @app.route("/logout", methods=["POST"])
 def logout():
-    session.clear()
     return jsonify({"success": True})
 
 

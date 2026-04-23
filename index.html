@@ -270,6 +270,25 @@ const API_BASE = "";
 let csvRows    = [];
 let historyLog = [];
 let searchResults = [];
+let appPassword = localStorage.getItem('sales_app_pw') || '';
+// 保存済みパスワードがあれば自動ログイン
+window.addEventListener('DOMContentLoaded', () => {
+  if (appPassword) {
+    fetch(`${API_BASE}/login`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ password: appPassword })
+    }).then(r => {
+      if (r.ok) {
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('main-app').classList.remove('hidden');
+        loadSettings();
+      } else {
+        localStorage.removeItem('sales_app_pw');
+        appPassword = '';
+      }
+    }).catch(() => {});
+  }
+});
 
 // ── 認証 ─────────────────────────────────────────────
 async function doLogin() {
@@ -295,7 +314,9 @@ async function doLogin() {
   }
 }
 async function doLogout() {
-  await fetch(`${API_BASE}/logout`, { method: 'POST', credentials: 'include' });
+  appPassword = '';
+  localStorage.removeItem('sales_app_pw');
+  await fetch(`${API_BASE}/logout`, { method: 'POST' });
   document.getElementById('main-app').classList.add('hidden');
   document.getElementById('login-screen').classList.remove('hidden');
   document.getElementById('login-password').value = '';
@@ -513,7 +534,7 @@ async function doCollect() {
     let enriched = [];
     try {
       const r1 = await fetch(`${API_BASE}/api/enrich`, {
-        method: 'POST', headers: {'Content-Type':'application/json'}, credentials: 'include',
+        method: 'POST', headers: {'Content-Type':'application/json', 'X-App-Password': appPassword}, credentials: 'include',
         body: JSON.stringify({ corp_nums, gbiz_token: gbizToken, names: namesMap, pref_name: prefName })
       });
       if (r1.status === 401) { doLogout(); return; }
@@ -532,7 +553,7 @@ async function doCollect() {
     ]);
     try {
       const r2 = await fetch(`${API_BASE}/api/write_master`, {
-        method: 'POST', headers: {'Content-Type':'application/json'}, credentials: 'include',
+        method: 'POST', headers: {'Content-Type':'application/json', 'X-App-Password': appPassword}, credentials: 'include',
         body: JSON.stringify({ token: googleToken, sheet_id: masterId, rows })
       });
       const d2 = await r2.json();
@@ -569,7 +590,7 @@ async function doSearch() {
 
   try {
     const res  = await fetch(`${API_BASE}/api/read_master`, {
-      method: 'POST', headers: {'Content-Type':'application/json'}, credentials: 'include',
+      method: 'POST', headers: {'Content-Type':'application/json', 'X-App-Password': appPassword}, credentials: 'include',
       body: JSON.stringify({ token: googleToken, sheet_id: masterSheetId, pref: pref })
     });
     if (res.status === 401) { doLogout(); return; }
@@ -640,7 +661,7 @@ async function doTransfer() {
 
   try {
     const res  = await fetch(`${API_BASE}/api/write_sales`, {
-      method: 'POST', headers: {'Content-Type':'application/json'}, credentials: 'include',
+      method: 'POST', headers: {'Content-Type':'application/json', 'X-App-Password': appPassword}, credentials: 'include',
       body: JSON.stringify({ token: googleToken, sheet_id: salesId, sheet_name: sheetName, rows })
     });
     if (res.status === 401) { doLogout(); return; }
