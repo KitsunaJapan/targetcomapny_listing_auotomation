@@ -304,6 +304,8 @@ async function doLogin() {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'エラー');
+    appPassword = pw;
+    localStorage.setItem('sales_app_pw', pw);
     document.getElementById('login-screen').classList.add('hidden');
     document.getElementById('main-app').classList.remove('hidden');
     loadSettings();
