@@ -61,6 +61,9 @@ def api_enrich():
     if not corp_nums or not gbiz_token:
         return jsonify({"error": "法人番号リストとgBizINFO APIトークンは必須です"}), 400
 
+    # メモリ節約のため最大10件に制限（フロント側で10件ずつ送る）
+    corp_nums = corp_nums[:10]
+
     headers = {
         "X-hojinInfo-api-token": gbiz_token,
         "Accept": "application/json",
@@ -68,15 +71,15 @@ def api_enrich():
     today   = time.strftime("%Y-%m-%d")
     results = []
 
-    for corp_num in corp_nums[:50]:
+    for corp_num in corp_nums:
         try:
             resp = requests.get(
                 f"{GBIZ_API_BASE}/hojin/{corp_num}",
                 headers=headers,
                 timeout=10,
             )
+
             if resp.status_code == 404:
-                # gBizINFO未登録 → CSV由来情報だけで記録
                 results.append({
                     "取得日":     today,
                     "法人番号":   str(corp_num),
@@ -94,7 +97,8 @@ def api_enrich():
             if not resp.ok:
                 continue
 
-            h = resp.json().get("hojin-infos", [{}])[0]
+            body = resp.json()
+            h    = body.get("hojin-infos", [{}])[0]
             results.append({
                 "取得日":     today,
                 "法人番号":   str(corp_num),
@@ -107,7 +111,9 @@ def api_enrich():
                 "HP":         h.get("company_url", ""),
                 "都道府県":   h.get("prefecture_name", "") or pref_name,
             })
-            time.sleep(0.2)
+            # レスポンスを明示的に解放
+            del body, h, resp
+            time.sleep(0.3)
 
         except Exception:
             continue

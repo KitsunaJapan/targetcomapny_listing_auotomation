@@ -521,7 +521,7 @@ async function doCollect() {
   const namesMap = {};
   filtered.forEach(r => { namesMap[r.corp_num] = r.name; });
 
-  const BATCH = 50;
+  const BATCH = 10;  // サーバーメモリ節約のため10件ずつ
   let totalWritten = 0;
 
   for (let i = 0; i < filtered.length; i += BATCH) {
@@ -559,6 +559,12 @@ async function doCollect() {
         body: JSON.stringify({ token: googleToken, sheet_id: masterId, rows })
       });
       const d2 = await r2.json();
+      if (r2.status === 400 && d2.error && d2.error.includes('アクセス')) {
+        setStatus('collect', '⚠️ Google OAuthトークンが期限切れです（1時間で失効）。設定タブで再取得して貼り直してください。', 'error');
+        document.getElementById('collect-btn').disabled = false;
+        document.getElementById('collect-label').textContent = '▶ 収集して企業マスタに蓄積';
+        return;
+      }
       if (!r2.ok) throw new Error(d2.error);
       totalWritten += d2.written;
     } catch(err) {
