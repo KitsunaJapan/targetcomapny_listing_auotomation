@@ -234,7 +234,13 @@ def read_master():
         headers=auth_h, timeout=15)
 
     if not res.ok:
-        return jsonify({"error": "企業マスタの読み込みに失敗しました。先に収集を実行してください。"}), 400
+        try:
+            err_detail = res.json().get("error", {}).get("message", "")
+        except Exception:
+            err_detail = res.text[:200]
+        if res.status_code in (401, 403):
+            return jsonify({"error": f"Google OAuthトークンが無効または期限切れです。設定タブで再取得してください。（詳細: {err_detail}）"}), 400
+        return jsonify({"error": f"企業マスタの読み込みに失敗しました。（HTTP {res.status_code}: {err_detail}）"}), 400
 
     all_rows = res.json().get("values", [])
     if len(all_rows) < 2:

@@ -687,10 +687,39 @@ async function doTransfer() {
 
   document.getElementById('transfer-btn').disabled = true;
   document.getElementById('transfer-label').innerHTML = '<span class="spinner"></span> 転記中...';
-  setStatus('transfer', 'スプレッドシート②に書き込んでいます...', 'loading');
+  setStatus('transfer', '重複チェック中...', 'loading');
 
   const today = new Date().toLocaleDateString('ja-JP');
-  const rows  = searchResults.map(r => [
+
+  // ── 転記先シートの既存法人名を取得して重複チェック ──
+  let existingNames = new Set();
+  try {
+    const auth_h = {'Authorization': `Bearer ${googleToken}`};
+    const rng    = encodeURIComponent(`${sheetName}!B:B`);
+    const chkRes = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${salesId}/values/${rng}`,
+      { headers: auth_h }
+    );
+    if (chkRes.ok) {
+      const chkData = await chkRes.json();
+      const vals = chkData.values || [];
+      vals.slice(1).forEach(r => { if (r[0]) existingNames.add(r[0]); });
+    }
+  } catch(e) { /* 取得失敗時は重複チェックなしで続行 */ }
+
+  // 重複を除外してrowsを生成
+  const beforeDup = searchResults.length;
+  const deduped   = searchResults.filter(r => !existingNames.has(r['法人名'] || ''));
+  const dupCount  = beforeDup - deduped.length;
+
+  if (!deduped.length) {
+    setStatus('transfer', `✓ 全件が既に転記済みです（重複除外: ${dupCount}件）`, 'success');
+    document.getElementById('transfer-btn').disabled = false;
+    document.getElementById('transfer-label').textContent = '📊 営業リストに転記';
+    return;
+  }
+
+  const rows = deduped.map(r => [
     today,
     r['法人名']   || '',
     r['電話番号'] || '',
@@ -699,6 +728,8 @@ async function doTransfer() {
     r['住所']     || '',
     r['HP']       || '',
   ]);
+
+  setStatus('transfer', `${deduped.length}件を転記中...（重複除外: ${dupCount}件）`, 'loading');
 
   try {
     const res  = await fetch(`${API_BASE}/api/write_sales`, {
@@ -710,7 +741,7 @@ async function doTransfer() {
     if (!res.ok) throw new Error(data.error);
 
     addHistory({ type: '転記', label: sheetName, count: data.written, mode: data.mode, date: today });
-    setStatus('transfer', `✓ ${data.written}件を「${sheetName}」シートに${data.mode}しました`, 'success');
+    setStatus('transfer', `✓ ${data.written}件を「${sheetName}」シートに${data.mode}しました（重複除外: ${dupCount}件）`, 'success');
     document.getElementById('transfer-label').textContent = `✓ ${data.written}件 転記完了`;
     setTimeout(() => { document.getElementById('transfer-label').textContent = '📊 営業リストに転記'; }, 3000);
   } catch(err) {
