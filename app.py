@@ -121,6 +121,43 @@ def api_enrich():
     return jsonify({"success": True, "fetched": len(results), "results": results})
 
 
+# ── 企業マスタの既存法人番号を取得 ──────────────────────────
+@app.route("/api/get_existing_corp_nums", methods=["POST"])
+def get_existing_corp_nums():
+    """
+    企業マスタシートのB列（法人番号）を全件取得して返す。
+    フロント側で重複チェックに使う。
+    """
+    if not check_auth():
+        return jsonify({"error": "認証が必要です"}), 401
+
+    data     = request.json
+    token    = data.get("token", "").strip()
+    sheet_id = data.get("sheet_id", "").strip()
+
+    if not token or not sheet_id:
+        return jsonify({"error": "token と sheet_id は必須です"}), 400
+
+    auth_h = {"Authorization": f"Bearer {token}"}
+    # B列（法人番号）だけ取得（高速・軽量）
+    rng = requests.utils.quote("企業マスタ!B:B", safe="")
+    res = requests.get(
+        f"https://sheets.googleapis.com/v4/spreadsheets/{sheet_id}/values/{rng}",
+        headers=auth_h, timeout=15
+    )
+
+    if not res.ok:
+        # シートがまだ存在しない場合は空リストを返す
+        if res.status_code == 400:
+            return jsonify({"success": True, "corp_nums": []})
+        return jsonify({"error": "企業マスタの読み込みに失敗しました"}), 400
+
+    values = res.json().get("values", [])
+    # 1行目はヘッダー（「法人番号」）なのでスキップ
+    corp_nums = [row[0] for row in values[1:] if row]
+    return jsonify({"success": True, "corp_nums": corp_nums, "count": len(corp_nums)})
+
+
 # ── スプレッドシート①への書き込み（企業マスタ蓄積） ─────────
 @app.route("/api/write_master", methods=["POST"])
 def write_master():

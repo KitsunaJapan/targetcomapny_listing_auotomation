@@ -506,17 +506,50 @@ async function doCollect() {
   if (!masterId)        { setStatus('collect', '設定タブでスプレッドシート①のIDを入力してください', 'error'); return; }
   if (!googleToken)     { setStatus('collect', '設定タブでGoogle OAuthトークンを入力してください', 'error'); return; }
 
-  // CSVを都道府県でフィルタ
-  const filtered = csvRows.filter(r => r.pref === prefName);
+  // 1. CSVを都道府県でフィルタ
+  let filtered = csvRows.filter(r => r.pref === prefName);
   if (!filtered.length) {
     setStatus('collect', `「${prefName}」の企業がCSVに見つかりませんでした。都道府県名の表記を確認してください。`, 'info');
     return;
   }
 
+  // 2. 「閉鎖」を含む企業を除外
+  const beforeClose = filtered.length;
+  filtered = filtered.filter(r => !r.name.includes('閉鎖'));
+  const closedCount = beforeClose - filtered.length;
+
   document.getElementById('collect-btn').disabled = true;
   document.getElementById('collect-label').innerHTML = '<span class="spinner"></span> 処理中...';
   document.getElementById('collect-progress-section').classList.remove('hidden');
-  setStatus('collect', `${filtered.length.toLocaleString()}件を抽出。gBizINFOで補完中...`, 'loading');
+  setStatus('collect', `準備中... 既存マスタを確認しています`, 'loading');
+
+  // 3. 企業マスタに既に登録されている法人番号を取得して除外
+  let existingSet = new Set();
+  try {
+    const exRes = await fetch(`${API_BASE}/api/get_existing_corp_nums`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json', 'X-App-Password': appPassword},
+      body: JSON.stringify({ token: googleToken, sheet_id: masterId })
+    });
+    if (exRes.ok) {
+      const exData = await exRes.json();
+      existingSet = new Set(exData.corp_nums);
+    }
+  } catch(e) { /* 取得失敗時はスキップ（全件処理） */ }
+
+  const beforeDup = filtered.length;
+  filtered = filtered.filter(r => !existingSet.has(r.corp_num));
+  const dupCount = beforeDup - filtered.length;
+
+  if (!filtered.length) {
+    setStatus('collect', `✓ ${prefName} は全件登録済みです（閉鎖除外: ${closedCount.toLocaleString()}件、重複除外: ${dupCount.toLocaleString()}件）`, 'success');
+    document.getElementById('collect-btn').disabled = false;
+    document.getElementById('collect-label').textContent = '▶ 収集して企業マスタに蓄積';
+    document.getElementById('collect-progress-section').classList.add('hidden');
+    return;
+  }
+
+  setStatus('collect', `${filtered.length.toLocaleString()}件を抽出（閉鎖除外: ${closedCount.toLocaleString()}件 / 重複除外: ${dupCount.toLocaleString()}件）。gBizINFOで補完中...`, 'loading');
 
   const namesMap = {};
   filtered.forEach(r => { namesMap[r.corp_num] = r.name; });
