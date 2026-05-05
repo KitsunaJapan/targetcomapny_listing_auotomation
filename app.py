@@ -324,6 +324,146 @@ def write_sales():
     return jsonify({"success": True, "written": len(rows), "mode": mode})
 
 
+
+# ── NAVITIMEスクレイピング ────────────────────────────────
+NAVITIME_PREF_CODES = {
+    "北海道":"01","青森県":"02","岩手県":"03","宮城県":"04","秋田県":"05",
+    "山形県":"06","福島県":"07","茨城県":"08","栃木県":"09","群馬県":"10",
+    "埼玉県":"11","千葉県":"12","東京都":"13","神奈川県":"14","新潟県":"15",
+    "富山県":"16","石川県":"17","福井県":"18","山梨県":"19","長野県":"20",
+    "岐阜県":"21","静岡県":"22","愛知県":"23","三重県":"24","滋賀県":"25",
+    "京都府":"26","大阪府":"27","兵庫県":"28","奈良県":"29","和歌山県":"30",
+    "鳥取県":"31","島根県":"32","岡山県":"33","広島県":"34","山口県":"35",
+    "徳島県":"36","香川県":"37","愛媛県":"38","高知県":"39","福岡県":"40",
+    "佐賀県":"41","長崎県":"42","熊本県":"43","大分県":"44","宮崎県":"45",
+    "鹿児島県":"46","沖縄県":"47",
+}
+
+@app.route("/api/scrape_navitime", methods=["POST"])
+def scrape_navitime():
+    """
+    NAVITIMEの法人カテゴリページをスクレイピングして企業情報を返す。
+    1ページ15件、最大ページ数まで取得。
+    """
+    if not check_auth():
+        return jsonify({"error": "認証が必要です"}), 401
+
+    from bs4 import BeautifulSoup
+
+    data      = request.json
+    pref_name = data.get("pref_name", "").strip()
+    tags      = data.get("tags", "").strip()      # 業種タグ（例: 010429）
+    page      = int(data.get("page", 1))          # 取得するページ番号
+    max_pages = int(data.get("max_pages", 1))     # 最大ページ数
+
+    pref_code = NAVITIME_PREF_CODES.get(pref_name)
+    if not pref_code:
+        return jsonify({"error": f"都道府県名が不正です: {pref_name}"}), 400
+    if not tags:
+        return jsonify({"error": "業種タグは必須です"}), 400
+
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "ja,en-US;q=0.9,en;q=0.8",
+    }
+
+    today    = time.strftime("%Y-%m-%d")
+    results  = []
+    end_page = min(page + max_pages - 1, 999)
+
+    for p in range(page, end_page + 1):
+        url = f"https://www.navitime.co.jp/category/0516/{pref_code}/?page={p}&tags={tags}"
+        try:
+            resp = requests.get(url, headers=headers, timeout=15)
+            if resp.status_code == 404:
+                break
+            if not resp.ok:
+                return jsonify({"error": f"NAVITIMEアクセスエラー: HTTP {resp.status_code}"}), 400
+
+            soup  = BeautifulSoup(resp.text, "html.parser")
+            items = soup.select("li.spot-section")
+
+            if not items:
+                break  # これ以上ページがない
+
+            for item in items:
+                name_el  = item.select_one(".spot-name-text")
+                addr_el  = item.select_one(".spot-address")
+                phone_el = item.select_one(".spot-phone-number, .spot-tel, dd.spot-detail-value")
+                link_el  = item.select_one("a[href^='/poi?spot=']")
+                tag_els  = item.select(".spot-tag")
+
+                name    = name_el.text.strip()  if name_el  else ""
+                address = addr_el.text.strip()  if addr_el  else ""
+                phone   = phone_el.text.strip() if phone_el else ""
+                detail_url = ("https://www.navitime.co.jp" + link_el["href"]) if link_el else ""
+                industry = tags  # タグコードを業種コードとして使用
+
+                # タグから業種名を取得
+                industry_name = ""
+                for tag in tag_els:
+                    t = tag.text.strip().lstrip("#")
+                    if t and t not in ["オフィスビル", "駅周辺"]:
+                        industry_name = t
+                        break
+
+                if not name:
+                    continue
+
+                results.append({
+                    "取得日":     today,
+                    "法人番号":   "",
+                    "法人名":     name,
+                    "業種コード": tags,
+                    "業種名":     industry_name,
+                    "電話番号":   phone,
+                    "FAX番号":    "",
+                    "住所":       address,
+                    "HP":         detail_url,
+                    "都道府県":   pref_name,
+                })
+
+            time.sleep(1)  # サーバー負荷軽減
+
+        except Exception as e:
+            return jsonify({"error": f"スクレイピングエラー: {str(e)}"}), 500
+
+    # 最終ページ数を確認
+    try:
+        url  = f"https://www.navitime.co.jp/category/0516/{pref_code}/?page=1&tags={tags}"
+        resp = requests.get(url, headers=headers, timeout=15)
+        soup = BeautifulSoup(resp.text, "html.parser")
+        page_links = soup.select("a.paging-number, .paging a")
+        total_pages = max([int(a.text.strip()) for a in page_links if a.text.strip().isdigit()] or [1])
+    except Exception:
+        total_pages = 1
+
+    return jsonify({
+        "success":     True,
+        "fetched":     len(results),
+        "total_pages": total_pages,
+        "results":     results,
+    })
+
+
+@app.route("/api/get_navitime_tags", methods=["GET"])
+def get_navitime_tags():
+    """
+    NAVITIMEのカテゴリツリーAPIから業種タグ一覧を取得する。
+    """
+    try:
+        resp = requests.get(
+            "https://www.navitime.co.jp/async/category/tree",
+            headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"},
+            timeout=10,
+        )
+        if not resp.ok:
+            return jsonify({"error": "タグ一覧の取得に失敗しました"}), 400
+        return jsonify(resp.json())
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)

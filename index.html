@@ -114,19 +114,7 @@
     </div>
 
     <div class="section" style="margin-top:1rem">
-      <div class="section-label">Step 1 ― 国税庁 法人番号CSVをアップロード</div>
-      <div class="upload-zone" id="upload-zone" onclick="document.getElementById('csv-input').click()">
-        <div class="upload-icon">📂</div>
-        <div class="upload-text" id="upload-text">クリックしてCSVを選択</div>
-        <div class="upload-sub">国税庁「全件データ」のCSVファイル（zip解凍後）</div>
-      </div>
-      <input type="file" id="csv-input" accept=".csv" style="display:none" onchange="handleCSV(event)"/>
-      <div id="csv-progress-wrap" class="progress-wrap hidden"><div class="progress-bar" id="csv-progress"></div></div>
-      <div id="csv-stats" style="font-size:12px;color:#888;margin-top:4px;"></div>
-    </div>
-
-    <div class="section">
-      <div class="section-label">Step 2 ― 都道府県を選択</div>
+      <div class="section-label">Step 1 ― 都道府県・業種を選択</div>
       <select id="collect-pref">
         <option value="">都道府県を選択してください</option>
         <option value="北海道">北海道</option><option value="青森県">青森県</option><option value="岩手県">岩手県</option>
@@ -146,6 +134,36 @@
         <option value="熊本県">熊本県</option><option value="大分県">大分県</option><option value="宮崎県">宮崎県</option>
         <option value="鹿児島県">鹿児島県</option><option value="沖縄県">沖縄県</option>
       </select>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Step 2 ― 業種タグを入力</div>
+      <input type="text" id="collect-tags" placeholder="例: 010429（広告代理店）"/>
+      <div class="note">
+        NAVITIMEのURLに表示される tags= の値を入力してください。<br>
+        例: https://www.navitime.co.jp/category/0516/13/?tags=<strong>010429</strong>
+      </div>
+      <div style="font-size:12px;color:#888;margin-top:8px;">よく使う業種タグ：
+        <a href="#" onclick="document.getElementById('collect-tags').value='010429';return false;">010429=広告代理店</a> /
+        <a href="#" onclick="document.getElementById('collect-tags').value='010306';return false;">010306=精密機器製造</a> /
+        <a href="#" onclick="document.getElementById('collect-tags').value='010009';return false;">010009=コンサルティング</a> /
+        <a href="#" onclick="document.getElementById('collect-tags').value='010021';return false;">010021=広告業界</a>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Step 3 ― 取得ページ範囲</div>
+      <div class="two-col">
+        <div>
+          <div style="font-size:12px;color:#888;margin-bottom:4px;">開始ページ</div>
+          <input type="number" id="collect-page-from" value="1" min="1"/>
+        </div>
+        <div>
+          <div style="font-size:12px;color:#888;margin-bottom:4px;">終了ページ</div>
+          <input type="number" id="collect-page-to" value="3" min="1"/>
+        </div>
+      </div>
+      <div class="note">1ページあたり約15件。まず1〜3ページで動作確認することを推奨します。</div>
     </div>
 
     <div id="collect-progress-section" class="hidden" style="margin-bottom:1rem;">
@@ -483,48 +501,35 @@ async function handleCSV(event) {
 }
 
 function resetCollect() {
-  csvRows = [];
-  document.getElementById('upload-zone').classList.remove('has-file');
-  document.getElementById('upload-text').textContent = 'クリックしてCSVを選択';
-  document.getElementById('csv-stats').textContent = '';
-  document.getElementById('csv-progress-wrap').classList.add('hidden');
-  document.getElementById('csv-input').value = '';
+  document.getElementById('collect-pref').value = '';
+  document.getElementById('collect-tags').value = '';
+  document.getElementById('collect-page-from').value = '1';
+  document.getElementById('collect-page-to').value = '3';
   document.getElementById('collect-progress-section').classList.add('hidden');
   setStatus('collect', '', '');
 }
 
 // ── 収集処理 ─────────────────────────────────────────
 async function doCollect() {
-  const prefName   = document.getElementById('collect-pref').value;
-  const gbizToken  = document.getElementById('gbiz-token').value.trim();
-  const masterId   = document.getElementById('master-sheet-id').value.trim();
+  const prefName    = document.getElementById('collect-pref').value;
+  const tags        = document.getElementById('collect-tags').value.trim();
+  const pageFrom    = parseInt(document.getElementById('collect-page-from').value) || 1;
+  const pageTo      = parseInt(document.getElementById('collect-page-to').value) || 1;
   const googleToken = document.getElementById('google-token').value.trim();
+  const masterId    = document.getElementById('master-sheet-id').value.trim();
 
-  if (!csvRows.length)  { setStatus('collect', 'まず国税庁CSVをアップロードしてください', 'error'); return; }
-  if (!prefName)        { setStatus('collect', '都道府県を選択してください', 'error'); return; }
-  if (!gbizToken)       { setStatus('collect', '設定タブでgBizINFO APIトークンを入力してください', 'error'); return; }
-  if (!masterId)        { setStatus('collect', '設定タブでスプレッドシート①のIDを入力してください', 'error'); return; }
-  if (!googleToken)     { setStatus('collect', '設定タブでGoogle OAuthトークンを入力してください', 'error'); return; }
-
-  // 1. CSVを都道府県でフィルタ
-  let filtered = csvRows.filter(r => r.pref === prefName);
-  if (!filtered.length) {
-    setStatus('collect', `「${prefName}」の企業がCSVに見つかりませんでした。都道府県名の表記を確認してください。`, 'info');
-    return;
-  }
-
-  // 2. 「閉鎖」を含む企業を除外
-  const beforeClose = filtered.length;
-  filtered = filtered.filter(r => !r.name.includes('閉鎖'));
-  const closedCount = beforeClose - filtered.length;
+  if (!prefName)    { setStatus('collect', '都道府県を選択してください', 'error'); return; }
+  if (!tags)        { setStatus('collect', '業種タグを入力してください', 'error'); return; }
+  if (!googleToken) { setStatus('collect', '設定タブでGoogle OAuthトークンを入力してください', 'error'); return; }
+  if (!masterId)    { setStatus('collect', '設定タブでスプレッドシート①のIDを入力してください', 'error'); return; }
 
   document.getElementById('collect-btn').disabled = true;
   document.getElementById('collect-label').innerHTML = '<span class="spinner"></span> 処理中...';
   document.getElementById('collect-progress-section').classList.remove('hidden');
-  setStatus('collect', `準備中... 既存マスタを確認しています`, 'loading');
+  setStatus('collect', '企業マスタの既存データを確認中...', 'loading');
 
-  // 3. 企業マスタに既に登録されている法人番号を取得して除外
-  let existingSet = new Set();
+  // 既存法人名を取得（重複チェック用）
+  let existingNames = new Set();
   try {
     const exRes = await fetch(`${API_BASE}/api/get_existing_corp_nums`, {
       method: 'POST',
@@ -533,67 +538,67 @@ async function doCollect() {
     });
     if (exRes.ok) {
       const exData = await exRes.json();
-      existingSet = new Set(exData.corp_nums);
+      existingNames = new Set(exData.corp_nums);
     }
-  } catch(e) { /* 取得失敗時はスキップ（全件処理） */ }
+  } catch(e) {}
 
-  const beforeDup = filtered.length;
-  filtered = filtered.filter(r => !existingSet.has(r.corp_num));
-  const dupCount = beforeDup - filtered.length;
-
-  if (!filtered.length) {
-    setStatus('collect', `✓ ${prefName} は全件登録済みです（閉鎖除外: ${closedCount.toLocaleString()}件、重複除外: ${dupCount.toLocaleString()}件）`, 'success');
-    document.getElementById('collect-btn').disabled = false;
-    document.getElementById('collect-label').textContent = '▶ 収集して企業マスタに蓄積';
-    document.getElementById('collect-progress-section').classList.add('hidden');
-    return;
-  }
-
-  setStatus('collect', `${filtered.length.toLocaleString()}件を抽出（閉鎖除外: ${closedCount.toLocaleString()}件 / 重複除外: ${dupCount.toLocaleString()}件）。gBizINFOで補完中...`, 'loading');
-
-  const namesMap = {};
-  filtered.forEach(r => { namesMap[r.corp_num] = r.name; });
-
-  const BATCH = 10;  // サーバーメモリ節約のため10件ずつ
   let totalWritten = 0;
+  const maxPages   = pageTo - pageFrom + 1;
 
-  for (let i = 0; i < filtered.length; i += BATCH) {
-    const batch     = filtered.slice(i, i + BATCH);
-    const corp_nums = batch.map(r => r.corp_num);
-    const pct       = Math.round((i / filtered.length) * 100);
+  for (let p = pageFrom; p <= pageTo; p++) {
+    const pct = Math.round(((p - pageFrom) / maxPages) * 100);
     document.getElementById('collect-progress-bar').style.width = pct + '%';
     document.getElementById('collect-progress-text').textContent =
-      `gBizINFO補完中... ${Math.min(i + BATCH, filtered.length).toLocaleString()} / ${filtered.length.toLocaleString()}件`;
+      `NAVITIMEをスクレイピング中... ${p} / ${pageTo} ページ`;
 
-    // gBizINFO補完
-    let enriched = [];
+    setStatus('collect', `ページ ${p}/${pageTo} をスクレイピング中...`, 'loading');
+
+    // NAVITIMEスクレイピング
+    let scraped = [];
     try {
-      const r1 = await fetch(`${API_BASE}/api/enrich`, {
-        method: 'POST', headers: {'Content-Type':'application/json', 'X-App-Password': appPassword}, credentials: 'include',
-        body: JSON.stringify({ corp_nums, gbiz_token: gbizToken, names: namesMap, pref_name: prefName })
+      const r1 = await fetch(`${API_BASE}/api/scrape_navitime`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json', 'X-App-Password': appPassword},
+        body: JSON.stringify({ pref_name: prefName, tags, page: p, max_pages: 1 })
       });
       if (r1.status === 401) { doLogout(); return; }
       const d1 = await r1.json();
       if (!r1.ok) throw new Error(d1.error);
-      enriched = d1.results;
+      scraped = d1.results;
+
+      // 初回ページで総ページ数を表示
+      if (p === pageFrom && d1.total_pages) {
+        document.getElementById('collect-page-to').max = d1.total_pages;
+        setStatus('collect', `全${d1.total_pages}ページ中 ${p}ページ目を処理中...`, 'loading');
+      }
     } catch(err) {
-      setStatus('collect', 'gBizINFOエラー: ' + err.message, 'error');
+      setStatus('collect', 'スクレイピングエラー: ' + err.message, 'error');
       break;
     }
 
+    if (!scraped.length) break;
+
+    // 重複除外（法人名ベース）
+    const newItems = scraped.filter(r => !existingNames.has(r['法人名']));
+    newItems.forEach(r => existingNames.add(r['法人名']));
+
+    if (!newItems.length) continue;
+
     // 企業マスタに書き込み
-    const rows = enriched.map(c => [
+    const rows = newItems.map(c => [
       c['取得日'], c['法人番号'], c['法人名'], c['業種コード'], c['業種名'],
       c['電話番号'], c['FAX番号'], c['住所'], c['HP'], c['都道府県']
     ]);
+
     try {
       const r2 = await fetch(`${API_BASE}/api/write_master`, {
-        method: 'POST', headers: {'Content-Type':'application/json', 'X-App-Password': appPassword}, credentials: 'include',
+        method: 'POST',
+        headers: {'Content-Type':'application/json', 'X-App-Password': appPassword},
         body: JSON.stringify({ token: googleToken, sheet_id: masterId, rows })
       });
       const d2 = await r2.json();
       if (r2.status === 400 && d2.error && d2.error.includes('アクセス')) {
-        setStatus('collect', '⚠️ Google OAuthトークンが期限切れです（1時間で失効）。設定タブで再取得して貼り直してください。', 'error');
+        setStatus('collect', '⚠️ Google OAuthトークンが期限切れです。設定タブで再取得してください。', 'error');
         document.getElementById('collect-btn').disabled = false;
         document.getElementById('collect-label').textContent = '▶ 収集して企業マスタに蓄積';
         return;
@@ -611,11 +616,11 @@ async function doCollect() {
   document.getElementById('collect-btn').disabled = false;
   document.getElementById('collect-label').textContent = '▶ 収集して企業マスタに蓄積';
 
-  addHistory({ type: '収集', label: prefName, count: totalWritten, date: new Date().toLocaleDateString('ja-JP') });
-  setStatus('collect', `✓ ${prefName} の企業 ${totalWritten.toLocaleString()}件 を企業マスタに保存しました`, 'success');
+  addHistory({ type: '収集', label: `${prefName}/${tags}`, count: totalWritten, date: new Date().toLocaleDateString('ja-JP') });
+  setStatus('collect', `✓ ${prefName}（タグ:${tags}）の企業を ${totalWritten.toLocaleString()}件 企業マスタに保存しました`, 'success');
 }
 
-// ── 転記処理 ─────────────────────────────────────────
+
 async function doSearch() {
   const industryKw  = document.getElementById('transfer-industry').value.trim();
   const pref        = document.getElementById('transfer-pref').value;
