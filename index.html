@@ -218,8 +218,17 @@
           </select>
         </div>
       </div>
-      <div style="font-size:12px;color:#888;margin-bottom:4px;">転記先シート名（営業リストの業種シート名）</div>
-      <input type="text" id="transfer-sheet-name" placeholder="例: 情報サービス業_東京都"/>
+      <div class="two-col" style="margin-top:4px;">
+        <div>
+          <div style="font-size:12px;color:#888;margin-bottom:4px;">転記先シート名</div>
+          <input type="text" id="transfer-sheet-name" placeholder="例: 広告代理店_東京都"/>
+        </div>
+        <div>
+          <div style="font-size:12px;color:#888;margin-bottom:4px;">転記件数上限</div>
+          <input type="number" id="transfer-limit" value="100" min="1" max="10000" step="10" placeholder="上限なし"/>
+        </div>
+      </div>
+      <div class="note">転記件数上限を設定するとその件数まで転記します。空欄にすると全件転記します。</div>
     </div>
 
     <button class="btn primary" id="search-btn" onclick="doSearch()" style="margin-bottom:8px;">
@@ -644,9 +653,11 @@ async function doSearch() {
     if (!res.ok) throw new Error(data.error);
 
     // 業種名で部分一致フィルタ（クライアント側）
-    searchResults = industryKw
+    const limit = parseInt(document.getElementById('transfer-limit').value) || Infinity;
+    const filtered = industryKw
       ? data.rows.filter(r => r['業種名'] && r['業種名'].includes(industryKw))
       : data.rows;
+    searchResults = filtered.slice(0, limit);
 
     renderTransferTable(searchResults);
     setStatus('transfer', `✓ ${searchResults.length.toLocaleString()}件 ヒットしました`, 'success');
