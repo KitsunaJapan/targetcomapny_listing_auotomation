@@ -7,13 +7,10 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Hiragino Sans', 'Yu Gothic', sans-serif; background: #f5f4f0; color: #1a1a1a; min-height: 100vh; padding: 2rem 1rem; }
-  .container { max-width: 720px; margin: 0 auto; }
+  .container { max-width: 700px; margin: 0 auto; }
   .header { margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; }
   .header h1 { font-size: 22px; font-weight: 500; }
   .header p { font-size: 13px; color: #666; margin-top: 4px; }
-  .tab-row { display: flex; border-bottom: 1px solid #ddd; margin-bottom: 1.5rem; }
-  .tab { padding: 8px 18px; font-size: 13px; cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; color: #888; margin-bottom: -1px; font-family: inherit; }
-  .tab.active { color: #1a1a1a; border-bottom-color: #1a1a1a; font-weight: 500; }
   .section { margin-bottom: 1.5rem; }
   .section-label { font-size: 11px; font-weight: 500; color: #888; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
   input[type="text"], input[type="password"], input[type="number"], select {
@@ -40,38 +37,26 @@
   .status-bar.loading { background: #e8f0fe; color: #1a56db; }
   .status-bar.success { background: #e8f5e9; color: #2e7d32; }
   .status-bar.error   { background: #fdecea; color: #c62828; }
-  .status-bar.info    { background: #fff8e1; color: #856404; }
   .hidden { display: none !important; }
   .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .progress-wrap { background: #e8e8e8; border-radius: 99px; height: 6px; margin: 8px 0; overflow: hidden; }
   .progress-bar { height: 100%; background: #1a56db; border-radius: 99px; transition: width 0.3s; width: 0%; }
-  .upload-zone { border: 1.5px dashed #ccc; border-radius: 12px; padding: 1.5rem; text-align: center; cursor: pointer; background: #fff; transition: all 0.2s; margin-bottom: 8px; }
-  .upload-zone:hover { border-color: #888; }
-  .upload-zone.has-file { border-color: #2e7d32; background: #f0fdf4; cursor: default; }
-  .upload-icon { font-size: 26px; margin-bottom: 6px; }
-  .upload-text { font-size: 14px; color: #555; }
-  .upload-sub { font-size: 12px; color: #aaa; margin-top: 4px; }
+  .note { font-size: 12px; color: #888; line-height: 1.6; padding: 10px 12px; background: #fff; border-radius: 8px; border: 1px solid #e8e8e8; margin-bottom: 8px; }
+  .note a { color: #1a56db; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 8px; }
+  @media(max-width:560px){ .two-col { grid-template-columns: 1fr; } }
   .result-table-wrap { overflow-x: auto; margin-bottom: 12px; }
   table.result-table { width: 100%; border-collapse: collapse; font-size: 12px; background: #fff; border-radius: 8px; overflow: hidden; border: 1px solid #e8e8e8; }
   table.result-table th { background: #f5f4f0; padding: 8px 10px; text-align: left; font-weight: 500; color: #555; border-bottom: 1px solid #e8e8e8; white-space: nowrap; }
   table.result-table td { padding: 6px 8px; border-bottom: 1px solid #f0f0f0; font-size: 12px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   table.result-table tr:last-child td { border-bottom: none; }
-  .row-num { color: #aaa; text-align: center; width: 28px; font-size: 11px; }
   .count-badge { font-size: 12px; background: #1a1a1a; color: #fff; border-radius: 999px; padding: 1px 8px; margin-left: 6px; }
-  .note { font-size: 12px; color: #888; line-height: 1.6; padding: 10px 12px; background: #fff; border-radius: 8px; border: 1px solid #e8e8e8; margin-bottom: 8px; }
-  .note a { color: #1a56db; }
-  .badge { font-size: 11px; padding: 2px 9px; border-radius: 999px; background: #e8f5e9; color: #2e7d32; }
-  .badge.blue { background: #e8f0fe; color: #1a56db; }
-  .history-item { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
-  .history-item:last-child { border-bottom: none; }
-  .history-name { font-weight: 500; }
-  .history-sub { color: #888; font-size: 12px; }
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  @media(max-width:560px){ .two-col { grid-template-columns: 1fr; } }
-  .sheet-info { background: #fff; border: 1px solid #e8e8e8; border-radius: 8px; padding: 12px 14px; font-size: 13px; margin-bottom: 8px; }
-  .sheet-info .label { font-size: 11px; color: #888; margin-bottom: 4px; }
-  .sheet-info .val { font-weight: 500; }
+  .tab-row { display: flex; border-bottom: 1px solid #ddd; margin-bottom: 1.5rem; }
+  .tab { padding: 8px 18px; font-size: 13px; cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; color: #888; margin-bottom: -1px; font-family: inherit; }
+  .tab.active { color: #1a1a1a; border-bottom-color: #1a1a1a; font-weight: 500; }
+  .tag-btn { display: inline-block; font-size: 12px; padding: 3px 10px; border-radius: 99px; border: 1px solid #ddd; background: #fff; cursor: pointer; margin: 2px; font-family: inherit; }
+  .tag-btn:hover { background: #f5f4f0; }
 </style>
 </head>
 <body>
@@ -92,113 +77,28 @@
   <div class="header">
     <div>
       <h1>営業先リスト化ツール</h1>
-      <p>企業マスタを蓄積 → 業種別に営業リストへ転記</p>
+      <p>NAVITIMEから業種・都道府県を指定して営業リストを作成</p>
     </div>
     <button class="btn danger small" onclick="doLogout()">ログアウト</button>
   </div>
 
   <div class="tab-row">
-    <button class="tab active" onclick="switchTab('collect')">① 収集</button>
-    <button class="tab" onclick="switchTab('transfer')">② 転記</button>
+    <button class="tab active" onclick="switchTab('main')">リスト作成</button>
     <button class="tab" onclick="switchTab('settings')">設定</button>
     <button class="tab" onclick="switchTab('history')">履歴</button>
   </div>
 
-  <!-- ① 収集タブ ──────────────────────────────────── -->
-  <div id="tab-collect">
-    <div id="status-collect" class="status-bar hidden"></div>
-
-    <div class="note">
-      国税庁CSVで都道府県フィルタ → gBizINFOで業種・連絡先を補完 →
-      <strong>スプレッドシート①「企業マスタ」</strong>に蓄積します。月1回の実行を推奨。
-    </div>
-
-    <div class="section" style="margin-top:1rem">
-      <div class="section-label">Step 1 ― 都道府県・業種を選択</div>
-      <select id="collect-pref">
-        <option value="">都道府県を選択してください</option>
-        <option value="北海道">北海道</option><option value="青森県">青森県</option><option value="岩手県">岩手県</option>
-        <option value="宮城県">宮城県</option><option value="秋田県">秋田県</option><option value="山形県">山形県</option>
-        <option value="福島県">福島県</option><option value="茨城県">茨城県</option><option value="栃木県">栃木県</option>
-        <option value="群馬県">群馬県</option><option value="埼玉県">埼玉県</option><option value="千葉県">千葉県</option>
-        <option value="東京都">東京都</option><option value="神奈川県">神奈川県</option><option value="新潟県">新潟県</option>
-        <option value="富山県">富山県</option><option value="石川県">石川県</option><option value="福井県">福井県</option>
-        <option value="山梨県">山梨県</option><option value="長野県">長野県</option><option value="岐阜県">岐阜県</option>
-        <option value="静岡県">静岡県</option><option value="愛知県">愛知県</option><option value="三重県">三重県</option>
-        <option value="滋賀県">滋賀県</option><option value="京都府">京都府</option><option value="大阪府">大阪府</option>
-        <option value="兵庫県">兵庫県</option><option value="奈良県">奈良県</option><option value="和歌山県">和歌山県</option>
-        <option value="鳥取県">鳥取県</option><option value="島根県">島根県</option><option value="岡山県">岡山県</option>
-        <option value="広島県">広島県</option><option value="山口県">山口県</option><option value="徳島県">徳島県</option>
-        <option value="香川県">香川県</option><option value="愛媛県">愛媛県</option><option value="高知県">高知県</option>
-        <option value="福岡県">福岡県</option><option value="佐賀県">佐賀県</option><option value="長崎県">長崎県</option>
-        <option value="熊本県">熊本県</option><option value="大分県">大分県</option><option value="宮崎県">宮崎県</option>
-        <option value="鹿児島県">鹿児島県</option><option value="沖縄県">沖縄県</option>
-      </select>
-    </div>
+  <!-- メインタブ -->
+  <div id="tab-main">
+    <div id="status-bar" class="status-bar hidden"></div>
 
     <div class="section">
-      <div class="section-label">Step 2 ― 業種タグを入力</div>
-      <input type="text" id="collect-tags" placeholder="例: 010429（広告代理店）"/>
-      <div class="note">
-        NAVITIMEのURLに表示される tags= の値を入力してください。<br>
-        例: https://www.navitime.co.jp/category/0516/13/?tags=<strong>010429</strong>
-      </div>
-      <div style="font-size:12px;color:#888;margin-top:8px;">よく使う業種タグ：
-        <a href="#" onclick="document.getElementById('collect-tags').value='010429';return false;">010429=広告代理店</a> /
-        <a href="#" onclick="document.getElementById('collect-tags').value='010306';return false;">010306=精密機器製造</a> /
-        <a href="#" onclick="document.getElementById('collect-tags').value='010009';return false;">010009=コンサルティング</a> /
-        <a href="#" onclick="document.getElementById('collect-tags').value='010021';return false;">010021=広告業界</a>
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="section-label">Step 3 ― 取得ページ範囲</div>
+      <div class="section-label">Step 1 ― 条件を設定</div>
       <div class="two-col">
-        <div>
-          <div style="font-size:12px;color:#888;margin-bottom:4px;">開始ページ</div>
-          <input type="number" id="collect-page-from" value="1" min="1"/>
-        </div>
-        <div>
-          <div style="font-size:12px;color:#888;margin-bottom:4px;">終了ページ</div>
-          <input type="number" id="collect-page-to" value="3" min="1"/>
-        </div>
-      </div>
-      <div class="note">1ページあたり約15件。まず1〜3ページで動作確認することを推奨します。</div>
-    </div>
-
-    <div id="collect-progress-section" class="hidden" style="margin-bottom:1rem;">
-      <div style="font-size:13px;color:#555;margin-bottom:4px;" id="collect-progress-text">補完中...</div>
-      <div class="progress-wrap"><div class="progress-bar" id="collect-progress-bar"></div></div>
-    </div>
-
-    <div class="btn-grid">
-      <button class="btn" onclick="resetCollect()">リセット</button>
-      <button class="btn primary" id="collect-btn" onclick="doCollect()">
-        <span id="collect-label">▶ 収集して企業マスタに蓄積</span>
-      </button>
-    </div>
-  </div>
-
-  <!-- ② 転記タブ ──────────────────────────────────── -->
-  <div id="tab-transfer" class="hidden">
-    <div id="status-transfer" class="status-bar hidden"></div>
-
-    <div class="note">
-      <strong>スプレッドシート①「企業マスタ」</strong>から業種・都道府県で絞り込み →
-      <strong>スプレッドシート②「営業リスト」</strong>に転記します。
-    </div>
-
-    <div class="section" style="margin-top:1rem">
-      <div class="section-label">絞り込み条件</div>
-      <div class="two-col">
-        <div>
-          <div style="font-size:12px;color:#888;margin-bottom:4px;">業種名（部分一致）</div>
-          <input type="text" id="transfer-industry" placeholder="例: 情報サービス、建設、製造"/>
-        </div>
         <div>
           <div style="font-size:12px;color:#888;margin-bottom:4px;">都道府県</div>
-          <select id="transfer-pref">
-            <option value="">全国</option>
+          <select id="pref-select">
+            <option value="">選択してください</option>
             <option value="北海道">北海道</option><option value="青森県">青森県</option><option value="岩手県">岩手県</option>
             <option value="宮城県">宮城県</option><option value="秋田県">秋田県</option><option value="山形県">山形県</option>
             <option value="福島県">福島県</option><option value="茨城県">茨城県</option><option value="栃木県">栃木県</option>
@@ -217,88 +117,94 @@
             <option value="鹿児島県">鹿児島県</option><option value="沖縄県">沖縄県</option>
           </select>
         </div>
-      </div>
-      <div class="two-col" style="margin-top:4px;">
         <div>
-          <div style="font-size:12px;color:#888;margin-bottom:4px;">転記先シート名</div>
-          <input type="text" id="transfer-sheet-name" placeholder="例: 広告代理店_東京都"/>
-        </div>
-        <div>
-          <div style="font-size:12px;color:#888;margin-bottom:4px;">転記件数上限</div>
-          <input type="number" id="transfer-limit" value="100" min="1" max="10000" step="10" placeholder="上限なし"/>
+          <div style="font-size:12px;color:#888;margin-bottom:4px;">取得件数上限</div>
+          <input type="number" id="limit-input" value="50" min="1" max="1000" step="10"/>
         </div>
       </div>
-      <div class="note">転記件数上限を設定するとその件数まで転記します。空欄にすると全件転記します。</div>
+      <div>
+        <div style="font-size:12px;color:#888;margin-bottom:4px;">業種タグ</div>
+        <input type="text" id="tags-input" placeholder="例: 010429"/>
+        <div style="margin-bottom:4px;">
+          <button class="tag-btn" onclick="setTag('010429')">広告代理店</button>
+          <button class="tag-btn" onclick="setTag('010009')">コンサルティング</button>
+          <button class="tag-btn" onclick="setTag('010021')">広告業界</button>
+          <button class="tag-btn" onclick="setTag('010232')">経営コンサルティング</button>
+          <button class="tag-btn" onclick="setTag('010018')">その他サービス</button>
+        </div>
+        <div class="note">
+          NAVITIMEで業種を絞ったときURLに表示される <code>tags=</code> の値を入力してください。<br>
+          例: navitime.co.jp/category/0516/13/?tags=<strong>010429</strong>
+        </div>
+      </div>
     </div>
 
-    <button class="btn primary" id="search-btn" onclick="doSearch()" style="margin-bottom:8px;">
-      <span id="search-label">🔍 企業マスタを検索</span>
-    </button>
+    <div class="section">
+      <div class="section-label">Step 2 ― 転記先を設定</div>
+      <input type="text" id="sheet-name-input" placeholder="シート名（例: 広告代理店_東京都）"/>
+    </div>
 
-    <!-- 検索結果プレビュー -->
-    <div id="transfer-result" class="hidden">
+    <div id="progress-section" class="hidden" style="margin-bottom:1rem;">
+      <div style="font-size:13px;color:#555;margin-bottom:4px;" id="progress-text">取得中...</div>
+      <div class="progress-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+    </div>
+
+    <div class="btn-grid">
+      <button class="btn" onclick="resetAll()">リセット</button>
+      <button class="btn primary" id="run-btn" onclick="doRun()">
+        <span id="run-label">▶ 取得してスプレッドシートに転記</span>
+      </button>
+    </div>
+
+    <!-- 結果プレビュー -->
+    <div id="result-section" class="hidden">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-        <div class="section-label">検索結果<span class="count-badge" id="transfer-count">0</span></div>
+        <div class="section-label">結果プレビュー<span class="count-badge" id="result-count">0</span></div>
       </div>
       <div class="result-table-wrap">
         <table class="result-table">
           <thead><tr>
-            <th class="row-num">#</th>
-            <th>法人名</th><th>業種名</th><th>電話番号</th><th>住所</th><th>HP</th>
+            <th>#</th><th>法人名</th><th>業種名</th><th>電話番号</th><th>住所</th>
           </tr></thead>
-          <tbody id="transfer-tbody"></tbody>
+          <tbody id="result-tbody"></tbody>
         </table>
       </div>
-      <button class="btn primary" id="transfer-btn" onclick="doTransfer()" style="margin-top:8px;">
-        <span id="transfer-label">📊 営業リストに転記</span>
-      </button>
     </div>
   </div>
 
-  <!-- 設定タブ ──────────────────────────────────────── -->
+  <!-- 設定タブ -->
   <div id="tab-settings" class="hidden">
     <div class="section">
-      <div class="section-label">gBizINFO API設定</div>
-      <input type="text" id="gbiz-token" placeholder="gBizINFO APIトークン"/>
-      <div class="note">未取得の場合は <a href="https://info.gbiz.go.jp/hojin/various_registration/form" target="_blank">gBizINFO申請ページ</a> から取得（無料）</div>
-    </div>
-    <div class="section">
-      <div class="section-label">Google OAuth トークン</div>
-      <input type="password" id="google-token" placeholder="Google OAuth アクセストークン"/>
-      <div class="note"><a href="https://developers.google.com/oauthplayground/" target="_blank">OAuth Playground</a> → Google Sheets API v4 → .../auth/spreadsheets で取得</div>
-    </div>
-    <div class="section">
-      <div class="section-label">スプレッドシートID</div>
-      <div class="two-col">
-        <div>
-          <div style="font-size:12px;color:#888;margin-bottom:4px;">① 企業マスタ用</div>
-          <input type="text" id="master-sheet-id" placeholder="スプレッドシート①のID"/>
-        </div>
-        <div>
-          <div style="font-size:12px;color:#888;margin-bottom:4px;">② 営業リスト用</div>
-          <input type="text" id="sales-sheet-id" placeholder="スプレッドシート②のID"/>
-        </div>
+      <div class="section-label">Google Sheets 設定</div>
+      <div style="font-size:12px;color:#888;margin-bottom:4px;">スプレッドシートID</div>
+      <input type="text" id="sheet-id-input" placeholder="スプレッドシートのID"/>
+      <div style="font-size:12px;color:#888;margin-bottom:4px;">Google OAuth アクセストークン</div>
+      <input type="password" id="token-input" placeholder="アクセストークン"/>
+      <div class="note">
+        <a href="https://developers.google.com/oauthplayground/" target="_blank">OAuth Playground</a> →
+        Google Sheets API v4 → .../auth/spreadsheets で取得。<br>
+        ※ 1時間で期限切れになります。切れたら再取得してください。
       </div>
     </div>
     <button class="btn primary" onclick="saveSettings()">設定を保存</button>
   </div>
 
-  <!-- 履歴タブ ──────────────────────────────────────── -->
+  <!-- 履歴タブ -->
   <div id="tab-history" class="hidden">
     <div class="section">
       <div class="section-label">操作履歴</div>
-      <div id="history-list"><div style="font-size:13px;color:#aaa;padding:1rem 0;">まだ操作履歴がありません</div></div>
+      <div id="history-list"><div style="font-size:13px;color:#aaa;padding:1rem 0;">まだ履歴がありません</div></div>
     </div>
   </div>
 </div>
 
 <script>
-const API_BASE = "";
-let csvRows    = [];
-let historyLog = [];
-let searchResults = [];
-let appPassword = localStorage.getItem('sales_app_pw') || '';
-// 保存済みパスワードがあれば自動ログイン
+const API_BASE   = "";
+let appPassword  = localStorage.getItem('sales_pw') || '';
+let historyLog   = JSON.parse(localStorage.getItem('sales_history') || '[]');
+let lastResults  = [];
+
+// ── 起動時自動ログイン ────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
   if (appPassword) {
     fetch(`${API_BASE}/login`, {
@@ -310,7 +216,7 @@ window.addEventListener('DOMContentLoaded', () => {
         document.getElementById('main-app').classList.remove('hidden');
         loadSettings();
       } else {
-        localStorage.removeItem('sales_app_pw');
+        localStorage.removeItem('sales_pw');
         appPassword = '';
       }
     }).catch(() => {});
@@ -319,7 +225,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // ── 認証 ─────────────────────────────────────────────
 async function doLogin() {
-  const pw = document.getElementById('login-password').value;
+  const pw    = document.getElementById('login-password').value;
   const label = document.getElementById('login-label');
   const errEl = document.getElementById('login-error');
   label.innerHTML = '<span class="spinner"></span>';
@@ -327,12 +233,12 @@ async function doLogin() {
   try {
     const res  = await fetch(`${API_BASE}/login`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ password: pw }), credentials: 'include'
+      body: JSON.stringify({ password: pw })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'エラー');
     appPassword = pw;
-    localStorage.setItem('sales_app_pw', pw);
+    localStorage.setItem('sales_pw', pw);
     document.getElementById('login-screen').classList.add('hidden');
     document.getElementById('main-app').classList.remove('hidden');
     loadSettings();
@@ -342,10 +248,10 @@ async function doLogin() {
     label.textContent = 'ログイン';
   }
 }
+
 async function doLogout() {
   appPassword = '';
-  localStorage.removeItem('sales_app_pw');
-  await fetch(`${API_BASE}/logout`, { method: 'POST' });
+  localStorage.removeItem('sales_pw');
   document.getElementById('main-app').classList.add('hidden');
   document.getElementById('login-screen').classList.remove('hidden');
   document.getElementById('login-password').value = '';
@@ -353,439 +259,183 @@ async function doLogout() {
 
 // ── 設定 ─────────────────────────────────────────────
 function loadSettings() {
-  const s = JSON.parse(localStorage.getItem('sales_v2_settings') || '{}');
-  if (s.gbizToken)     document.getElementById('gbiz-token').value     = s.gbizToken;
-  if (s.googleToken)   document.getElementById('google-token').value   = s.googleToken;
-  if (s.masterSheetId) document.getElementById('master-sheet-id').value = s.masterSheetId;
-  if (s.salesSheetId)  document.getElementById('sales-sheet-id').value  = s.salesSheetId;
-  historyLog = JSON.parse(localStorage.getItem('sales_v2_history') || '[]');
+  const s = JSON.parse(localStorage.getItem('sales_settings') || '{}');
+  if (s.sheetId) document.getElementById('sheet-id-input').value = s.sheetId;
+  if (s.token)   document.getElementById('token-input').value   = s.token;
   renderHistory();
 }
+
 function saveSettings() {
-  localStorage.setItem('sales_v2_settings', JSON.stringify({
-    gbizToken:     document.getElementById('gbiz-token').value,
-    googleToken:   document.getElementById('google-token').value,
-    masterSheetId: document.getElementById('master-sheet-id').value,
-    salesSheetId:  document.getElementById('sales-sheet-id').value,
+  localStorage.setItem('sales_settings', JSON.stringify({
+    sheetId: document.getElementById('sheet-id-input').value,
+    token:   document.getElementById('token-input').value,
   }));
-  setStatus('collect', '設定を保存しました', 'success');
-  setTimeout(() => setStatus('collect','',''), 2000);
-  switchTab('collect');
+  setStatus('設定を保存しました', 'success');
+  setTimeout(() => setStatus('', ''), 2000);
+  switchTab('main');
 }
 
 // ── タブ ─────────────────────────────────────────────
 function switchTab(name) {
-  ['collect','transfer','settings','history'].forEach((t,i) => {
+  ['main','settings','history'].forEach((t, i) => {
     document.getElementById('tab-'+t).classList.add('hidden');
     document.querySelectorAll('.tab')[i].classList.remove('active');
   });
   document.getElementById('tab-'+name).classList.remove('hidden');
-  document.querySelectorAll('.tab')[['collect','transfer','settings','history'].indexOf(name)].classList.add('active');
+  document.querySelectorAll('.tab')[['main','settings','history'].indexOf(name)].classList.add('active');
 }
 
-function setStatus(tab, msg, type) {
-  const bar = document.getElementById(`status-${tab}`);
+function setStatus(msg, type) {
+  const bar = document.getElementById('status-bar');
   if (!msg) { bar.classList.add('hidden'); return; }
   bar.innerHTML = msg;
   bar.className = 'status-bar ' + type;
   bar.classList.remove('hidden');
 }
 
-// ── CSV読み込み（ブラウザ側） ─────────────────────────
-function parseCSVLine(line) {
-  // RFC4180準拠のCSVパーサー（クォート・カンマ・改行を正しく処理）
-  const result = [];
-  let cur = '', inQ = false;
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (inQ) {
-      if (ch === '"') {
-        if (line[i+1] === '"') { cur += '"'; i++; } // エスケープ ""
-        else inQ = false;
-      } else {
-        cur += ch;
-      }
-    } else {
-      if (ch === '"') { inQ = true; }
-      else if (ch === ',') { result.push(cur.trim()); cur = ''; }
-      else { cur += ch; }
+function setTag(tag) {
+  document.getElementById('tags-input').value = tag;
+}
+
+function resetAll() {
+  document.getElementById('pref-select').value   = '';
+  document.getElementById('tags-input').value    = '';
+  document.getElementById('limit-input').value   = '50';
+  document.getElementById('sheet-name-input').value = '';
+  document.getElementById('result-section').classList.add('hidden');
+  document.getElementById('progress-section').classList.add('hidden');
+  lastResults = [];
+  setStatus('', '');
+}
+
+// ── メイン処理 ────────────────────────────────────────
+async function doRun() {
+  const pref      = document.getElementById('pref-select').value;
+  const tags      = document.getElementById('tags-input').value.trim();
+  const limit     = parseInt(document.getElementById('limit-input').value) || 50;
+  const sheetName = document.getElementById('sheet-name-input').value.trim();
+  const sheetId   = document.getElementById('sheet-id-input').value.trim();
+  const token     = document.getElementById('token-input').value.trim();
+
+  if (!pref)      { setStatus('都道府県を選択してください', 'error'); return; }
+  if (!tags)      { setStatus('業種タグを入力してください', 'error'); return; }
+  if (!sheetName) { setStatus('転記先シート名を入力してください', 'error'); return; }
+  if (!sheetId)   { setStatus('設定タブでスプレッドシートIDを入力してください', 'error'); return; }
+  if (!token)     { setStatus('設定タブでGoogle OAuthトークンを入力してください', 'error'); return; }
+
+  document.getElementById('run-btn').disabled = true;
+  document.getElementById('run-label').innerHTML = '<span class="spinner"></span> 取得中...';
+  document.getElementById('progress-section').classList.remove('hidden');
+  document.getElementById('result-section').classList.add('hidden');
+  setStatus('NAVITIMEから企業情報を取得中...', 'loading');
+
+  // ── Step1: スクレイピング ──
+  let scraped = [];
+  let page    = 1;
+  while (scraped.length < limit) {
+    const remaining = limit - scraped.length;
+    document.getElementById('progress-text').textContent =
+      `スクレイピング中... ${scraped.length} / ${limit}件`;
+    document.getElementById('progress-bar').style.width =
+      Math.round(scraped.length / limit * 70) + '%';
+
+    try {
+      const res  = await fetch(`${API_BASE}/api/scrape`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json', 'X-App-Password': appPassword},
+        body: JSON.stringify({ pref_name: pref, tags, limit: remaining, page })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      if (!data.results.length) break;
+      scraped.push(...data.results);
+      page = data.next_page;
+      if (data.results.length < 15) break; // 最終ページ
+    } catch(err) {
+      setStatus('スクレイピングエラー: ' + err.message, 'error');
+      document.getElementById('run-btn').disabled = false;
+      document.getElementById('run-label').textContent = '▶ 取得してスプレッドシートに転記';
+      return;
     }
   }
-  result.push(cur.trim());
-  return result;
-}
 
-function parseCSVText(text) {
-  // 改行コード統一（\r\n / \r / \n すべて対応）
-  const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
-  csvRows = [];
-  for (let i = 1; i < lines.length; i++) {
-    if (!lines[i].trim()) continue;
-    const cols = parseCSVLine(lines[i]);
-    if (cols.length < 10) continue;
-    const corpNum = cols[1];  // 列2: 法人番号（13桁）
-    const name    = cols[6];  // 列7: 法人名
-    const pref    = cols[9];  // 列10: 都道府県名
-    if (!corpNum || corpNum.length !== 13) continue;
-    csvRows.push({ corp_num: corpNum, name, pref });
-  }
-}
+  scraped = scraped.slice(0, limit);
+  lastResults = scraped;
 
-async function handleCSV(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  setStatus('collect', '<span class="spinner"></span> CSVを読み込んでいます（大きいファイルは数分かかります）...', 'loading');
-  document.getElementById('csv-progress-wrap').classList.remove('hidden');
-  csvRows = [];
+  // ── Step2: スプレッドシートに転記 ──
+  document.getElementById('progress-text').textContent = 'スプレッドシートに転記中...';
+  document.getElementById('progress-bar').style.width = '80%';
+  setStatus('スプレッドシートに転記中...', 'loading');
+
+  const rows = scraped.map(r => [
+    r['取得日'], r['法人名'], r['業種名'], r['電話番号'], r['住所'], r['HP'], r['都道府県']
+  ]);
 
   try {
-    // ストリーミングで読み込み（1GBでもメモリに全展開しない）
-    const decoder = new TextDecoder('shift-jis');
-    const stream  = file.stream();
-    const reader  = stream.getReader();
-    let leftover  = '';
-    let bytesRead = 0;
-    let lineCount = 0;
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      bytesRead += value.byteLength;
-      const pct = Math.min(99, Math.round(bytesRead / file.size * 100));
-      document.getElementById('csv-progress').style.width = pct + '%';
-
-      // チャンクをShift-JISでデコードして行ごとに処理
-      const chunk = leftover + decoder.decode(value, { stream: true });
-      const lines = chunk.split('\n');
-      leftover = lines.pop(); // 最後の不完全行は次のチャンクへ
-
-      for (const line of lines) {
-        lineCount++;
-        if (lineCount === 1) continue; // ヘッダースキップ
-        if (!line.trim()) continue;
-        const cols = parseCSVLine(line);
-        if (cols.length < 10) continue;
-        const corpNum = cols[1];
-        const name    = cols[6];
-        const pref    = cols[9];
-        if (!corpNum || corpNum.length !== 13) continue;
-        csvRows.push({ corp_num: corpNum, name, pref });
-      }
-
-      // 進捗を画面に反映（10万件ごと）
-      if (csvRows.length % 100000 === 0 && csvRows.length > 0) {
-        document.getElementById('csv-stats').textContent =
-          `読み込み中... ${csvRows.length.toLocaleString()} 件`;
-        await new Promise(r => setTimeout(r, 0)); // UIを更新させる
-      }
-    }
-
-    // 残った最終行を処理
-    if (leftover.trim()) {
-      const cols = parseCSVLine(leftover);
-      if (cols.length >= 10) {
-        const corpNum = cols[1];
-        const name    = cols[6];
-        const pref    = cols[9];
-        if (corpNum && corpNum.length === 13) {
-          csvRows.push({ corp_num: corpNum, name, pref });
-        }
-      }
-    }
-
-    document.getElementById('csv-progress').style.width = '100%';
-    document.getElementById('upload-zone').classList.add('has-file');
-    document.getElementById('upload-text').textContent = `✓ ${file.name}`;
-    document.getElementById('csv-stats').textContent = `${csvRows.length.toLocaleString()} 件読み込み完了`;
-
-    if (csvRows.length === 0) {
-      setStatus('collect', '⚠️ 0件でした。国税庁の全件CSVか確認してください。', 'error');
-    } else {
-      setStatus('collect', `✓ CSV読み込み完了（${csvRows.length.toLocaleString()}件）`, 'success');
-    }
-  } catch(err) {
-    setStatus('collect', 'CSVの読み込みに失敗しました: ' + err.message, 'error');
-  }
-}
-
-function resetCollect() {
-  document.getElementById('collect-pref').value = '';
-  document.getElementById('collect-tags').value = '';
-  document.getElementById('collect-page-from').value = '1';
-  document.getElementById('collect-page-to').value = '3';
-  document.getElementById('collect-progress-section').classList.add('hidden');
-  setStatus('collect', '', '');
-}
-
-// ── 収集処理 ─────────────────────────────────────────
-async function doCollect() {
-  const prefName    = document.getElementById('collect-pref').value;
-  const tags        = document.getElementById('collect-tags').value.trim();
-  const pageFrom    = parseInt(document.getElementById('collect-page-from').value) || 1;
-  const pageTo      = parseInt(document.getElementById('collect-page-to').value) || 1;
-  const googleToken = document.getElementById('google-token').value.trim();
-  const masterId    = document.getElementById('master-sheet-id').value.trim();
-
-  if (!prefName)    { setStatus('collect', '都道府県を選択してください', 'error'); return; }
-  if (!tags)        { setStatus('collect', '業種タグを入力してください', 'error'); return; }
-  if (!googleToken) { setStatus('collect', '設定タブでGoogle OAuthトークンを入力してください', 'error'); return; }
-  if (!masterId)    { setStatus('collect', '設定タブでスプレッドシート①のIDを入力してください', 'error'); return; }
-
-  document.getElementById('collect-btn').disabled = true;
-  document.getElementById('collect-label').innerHTML = '<span class="spinner"></span> 処理中...';
-  document.getElementById('collect-progress-section').classList.remove('hidden');
-  setStatus('collect', '企業マスタの既存データを確認中...', 'loading');
-
-  // 既存法人名を取得（重複チェック用）
-  let existingNames = new Set();
-  try {
-    const exRes = await fetch(`${API_BASE}/api/get_existing_corp_nums`, {
+    const res  = await fetch(`${API_BASE}/api/write_sheet`, {
       method: 'POST',
       headers: {'Content-Type':'application/json', 'X-App-Password': appPassword},
-      body: JSON.stringify({ token: googleToken, sheet_id: masterId })
+      body: JSON.stringify({ token, sheet_id: sheetId, sheet_name: sheetName, rows })
     });
-    if (exRes.ok) {
-      const exData = await exRes.json();
-      existingNames = new Set(exData.corp_nums);
-    }
-  } catch(e) {}
-
-  let totalWritten = 0;
-  const maxPages   = pageTo - pageFrom + 1;
-
-  for (let p = pageFrom; p <= pageTo; p++) {
-    const pct = Math.round(((p - pageFrom) / maxPages) * 100);
-    document.getElementById('collect-progress-bar').style.width = pct + '%';
-    document.getElementById('collect-progress-text').textContent =
-      `NAVITIMEをスクレイピング中... ${p} / ${pageTo} ページ`;
-
-    setStatus('collect', `ページ ${p}/${pageTo} をスクレイピング中...`, 'loading');
-
-    // NAVITIMEスクレイピング
-    let scraped = [];
-    try {
-      const r1 = await fetch(`${API_BASE}/api/scrape_navitime`, {
-        method: 'POST',
-        headers: {'Content-Type':'application/json', 'X-App-Password': appPassword},
-        body: JSON.stringify({ pref_name: prefName, tags, page: p, max_pages: 1 })
-      });
-      if (r1.status === 401) { doLogout(); return; }
-      const d1 = await r1.json();
-      if (!r1.ok) throw new Error(d1.error);
-      scraped = d1.results;
-
-      // 初回ページで総ページ数を表示
-      if (p === pageFrom && d1.total_pages) {
-        document.getElementById('collect-page-to').max = d1.total_pages;
-        setStatus('collect', `全${d1.total_pages}ページ中 ${p}ページ目を処理中...`, 'loading');
-      }
-    } catch(err) {
-      setStatus('collect', 'スクレイピングエラー: ' + err.message, 'error');
-      break;
-    }
-
-    if (!scraped.length) break;
-
-    // 重複除外（法人名ベース）
-    const newItems = scraped.filter(r => !existingNames.has(r['法人名']));
-    newItems.forEach(r => existingNames.add(r['法人名']));
-
-    if (!newItems.length) continue;
-
-    // 企業マスタに書き込み
-    const rows = newItems.map(c => [
-      c['取得日'], c['法人番号'], c['法人名'], c['業種コード'], c['業種名'],
-      c['電話番号'], c['FAX番号'], c['住所'], c['HP'], c['都道府県']
-    ]);
-
-    try {
-      const r2 = await fetch(`${API_BASE}/api/write_master`, {
-        method: 'POST',
-        headers: {'Content-Type':'application/json', 'X-App-Password': appPassword},
-        body: JSON.stringify({ token: googleToken, sheet_id: masterId, rows })
-      });
-      const d2 = await r2.json();
-      if (r2.status === 400 && d2.error && d2.error.includes('アクセス')) {
-        setStatus('collect', '⚠️ Google OAuthトークンが期限切れです。設定タブで再取得してください。', 'error');
-        document.getElementById('collect-btn').disabled = false;
-        document.getElementById('collect-label').textContent = '▶ 収集して企業マスタに蓄積';
-        return;
-      }
-      if (!r2.ok) throw new Error(d2.error);
-      totalWritten += d2.written;
-    } catch(err) {
-      setStatus('collect', 'スプレッドシート書き込みエラー: ' + err.message, 'error');
-      break;
-    }
-  }
-
-  document.getElementById('collect-progress-bar').style.width = '100%';
-  document.getElementById('collect-progress-section').classList.add('hidden');
-  document.getElementById('collect-btn').disabled = false;
-  document.getElementById('collect-label').textContent = '▶ 収集して企業マスタに蓄積';
-
-  addHistory({ type: '収集', label: `${prefName}/${tags}`, count: totalWritten, date: new Date().toLocaleDateString('ja-JP') });
-  setStatus('collect', `✓ ${prefName}（タグ:${tags}）の企業を ${totalWritten.toLocaleString()}件 企業マスタに保存しました`, 'success');
-}
-
-
-async function doSearch() {
-  const industryKw  = document.getElementById('transfer-industry').value.trim();
-  const pref        = document.getElementById('transfer-pref').value;
-  const googleToken = document.getElementById('google-token').value.trim();
-  const masterSheetId = document.getElementById('master-sheet-id').value.trim();
-
-  if (!googleToken)   { setStatus('transfer', '設定タブでGoogle OAuthトークンを入力してください', 'error'); return; }
-  if (!masterSheetId) { setStatus('transfer', '設定タブでスプレッドシート①のIDを入力してください', 'error'); return; }
-
-  document.getElementById('search-btn').disabled = true;
-  document.getElementById('search-label').innerHTML = '<span class="spinner"></span> 検索中...';
-  setStatus('transfer', '企業マスタを検索中...', 'loading');
-
-  try {
-    const res  = await fetch(`${API_BASE}/api/read_master`, {
-      method: 'POST', headers: {'Content-Type':'application/json', 'X-App-Password': appPassword}, credentials: 'include',
-      body: JSON.stringify({ token: googleToken, sheet_id: masterSheetId, pref: pref })
-    });
-    if (res.status === 401) { doLogout(); return; }
     const data = await res.json();
     if (!res.ok) throw new Error(data.error);
 
-    // 業種名で部分一致フィルタ（クライアント側）
-    const limit = parseInt(document.getElementById('transfer-limit').value) || Infinity;
-    const filtered = industryKw
-      ? data.rows.filter(r => r['業種名'] && r['業種名'].includes(industryKw))
-      : data.rows;
-    searchResults = filtered.slice(0, limit);
+    document.getElementById('progress-bar').style.width = '100%';
 
-    renderTransferTable(searchResults);
-    setStatus('transfer', `✓ ${searchResults.length.toLocaleString()}件 ヒットしました`, 'success');
+    // プレビュー表示
+    renderPreview(scraped);
 
-    // シート名を自動設定
-    if (!document.getElementById('transfer-sheet-name').value) {
-      const label = (industryKw || '全業種') + (pref ? `_${pref}` : '');
-      document.getElementById('transfer-sheet-name').value = label;
-    }
+    const msg = `✓ ${data.written}件を「${sheetName}」に${data.mode}しました` +
+                (data.duplicates > 0 ? `（重複除外: ${data.duplicates}件）` : '');
+    setStatus(msg, 'success');
+
+    addHistory({ label: `${pref} / ${tags}`, sheet: sheetName, written: data.written, date: new Date().toLocaleDateString('ja-JP') });
+
   } catch(err) {
-    setStatus('transfer', 'エラー: ' + err.message, 'error');
+    setStatus('転記エラー: ' + err.message, 'error');
   } finally {
-    document.getElementById('search-btn').disabled = false;
-    document.getElementById('search-label').textContent = '🔍 企業マスタを検索';
+    document.getElementById('run-btn').disabled = false;
+    document.getElementById('run-label').textContent = '▶ 取得してスプレッドシートに転記';
+    document.getElementById('progress-section').classList.add('hidden');
   }
 }
 
-function renderTransferTable(rows) {
-  const tbody = document.getElementById('transfer-tbody');
-  tbody.innerHTML = rows.slice(0, 100).map((r, i) => `
+function renderPreview(results) {
+  const tbody = document.getElementById('result-tbody');
+  tbody.innerHTML = results.slice(0, 20).map((r, i) => `
     <tr>
-      <td class="row-num">${i+1}</td>
+      <td style="color:#aaa;text-align:center;width:28px;">${i+1}</td>
       <td title="${r['法人名']}">${r['法人名']||'-'}</td>
       <td>${r['業種名']||'-'}</td>
       <td>${r['電話番号']||'-'}</td>
-      <td title="${r['住所']}">${(r['住所']||'-').substring(0,16)}</td>
-      <td>${r['HP'] ? `<a href="${r['HP']}" target="_blank">リンク</a>` : '-'}</td>
+      <td title="${r['住所']}">${(r['住所']||'-').substring(0,18)}</td>
     </tr>
   `).join('');
-  document.getElementById('transfer-count').textContent = rows.length;
-  document.getElementById('transfer-result').classList.remove('hidden');
-}
-
-async function doTransfer() {
-  const sheetName   = document.getElementById('transfer-sheet-name').value.trim();
-  const googleToken = document.getElementById('google-token').value.trim();
-  const salesId     = document.getElementById('sales-sheet-id').value.trim();
-
-  if (!sheetName)   { setStatus('transfer', '転記先シート名を入力してください', 'error'); return; }
-  if (!googleToken) { setStatus('transfer', '設定タブでGoogle OAuthトークンを入力してください', 'error'); return; }
-  if (!salesId)     { setStatus('transfer', '設定タブでスプレッドシート②のIDを入力してください', 'error'); return; }
-  if (!searchResults.length) { setStatus('transfer', '先に検索を実行してください', 'error'); return; }
-
-  document.getElementById('transfer-btn').disabled = true;
-  document.getElementById('transfer-label').innerHTML = '<span class="spinner"></span> 転記中...';
-  setStatus('transfer', '重複チェック中...', 'loading');
-
-  const today = new Date().toLocaleDateString('ja-JP');
-
-  // ── 転記先シートの既存法人名を取得して重複チェック ──
-  let existingNames = new Set();
-  try {
-    const auth_h = {'Authorization': `Bearer ${googleToken}`};
-    const rng    = encodeURIComponent(`${sheetName}!B:B`);
-    const chkRes = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${salesId}/values/${rng}`,
-      { headers: auth_h }
-    );
-    if (chkRes.ok) {
-      const chkData = await chkRes.json();
-      const vals = chkData.values || [];
-      vals.slice(1).forEach(r => { if (r[0]) existingNames.add(r[0]); });
-    }
-  } catch(e) { /* 取得失敗時は重複チェックなしで続行 */ }
-
-  // 重複を除外してrowsを生成
-  const beforeDup = searchResults.length;
-  const deduped   = searchResults.filter(r => !existingNames.has(r['法人名'] || ''));
-  const dupCount  = beforeDup - deduped.length;
-
-  if (!deduped.length) {
-    setStatus('transfer', `✓ 全件が既に転記済みです（重複除外: ${dupCount}件）`, 'success');
-    document.getElementById('transfer-btn').disabled = false;
-    document.getElementById('transfer-label').textContent = '📊 営業リストに転記';
-    return;
-  }
-
-  const rows = deduped.map(r => [
-    today,
-    r['法人名']   || '',
-    r['電話番号'] || '',
-    r['FAX番号']  || '',
-    '',              // メール（現在空欄）
-    r['住所']     || '',
-    r['HP']       || '',
-  ]);
-
-  setStatus('transfer', `${deduped.length}件を転記中...（重複除外: ${dupCount}件）`, 'loading');
-
-  try {
-    const res  = await fetch(`${API_BASE}/api/write_sales`, {
-      method: 'POST', headers: {'Content-Type':'application/json', 'X-App-Password': appPassword}, credentials: 'include',
-      body: JSON.stringify({ token: googleToken, sheet_id: salesId, sheet_name: sheetName, rows })
-    });
-    if (res.status === 401) { doLogout(); return; }
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error);
-
-    addHistory({ type: '転記', label: sheetName, count: data.written, mode: data.mode, date: today });
-    setStatus('transfer', `✓ ${data.written}件を「${sheetName}」シートに${data.mode}しました（重複除外: ${dupCount}件）`, 'success');
-    document.getElementById('transfer-label').textContent = `✓ ${data.written}件 転記完了`;
-    setTimeout(() => { document.getElementById('transfer-label').textContent = '📊 営業リストに転記'; }, 3000);
-  } catch(err) {
-    setStatus('transfer', '転記エラー: ' + err.message, 'error');
-  } finally {
-    document.getElementById('transfer-btn').disabled = false;
-  }
+  document.getElementById('result-count').textContent =
+    results.length > 20 ? `${results.length}件（先頭20件表示）` : results.length;
+  document.getElementById('result-section').classList.remove('hidden');
 }
 
 // ── 履歴 ─────────────────────────────────────────────
 function addHistory(entry) {
   historyLog.unshift(entry);
-  localStorage.setItem('sales_v2_history', JSON.stringify(historyLog.slice(0, 100)));
+  localStorage.setItem('sales_history', JSON.stringify(historyLog.slice(0, 100)));
   renderHistory();
 }
+
 function renderHistory() {
   const list = document.getElementById('history-list');
   if (!historyLog.length) {
-    list.innerHTML = '<div style="font-size:13px;color:#aaa;padding:1rem 0;">まだ操作履歴がありません</div>';
+    list.innerHTML = '<div style="font-size:13px;color:#aaa;padding:1rem 0;">まだ履歴がありません</div>';
     return;
   }
   list.innerHTML = historyLog.slice(0, 30).map(h => `
-    <div class="history-item">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #f0f0f0;font-size:13px;">
       <div>
-        <div class="history-name">${h.label}</div>
-        <div class="history-sub">${h.count}件 · ${h.type}${h.mode ? ' · '+h.mode : ''} · ${h.date}</div>
+        <div style="font-weight:500;">${h.sheet}</div>
+        <div style="color:#888;font-size:12px;">${h.label} · ${h.written}件 · ${h.date}</div>
       </div>
-      <span class="badge ${h.type==='転記'?'blue':''}">${h.type}</span>
+      <span style="font-size:11px;padding:2px 9px;border-radius:999px;background:#e8f5e9;color:#2e7d32;">転記済み</span>
     </div>
   `).join('');
 }
