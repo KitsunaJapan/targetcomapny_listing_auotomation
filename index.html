@@ -160,15 +160,25 @@
     <div id="result-section" class="hidden">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
         <div class="section-label">結果プレビュー<span class="count-badge" id="result-count">0</span></div>
+        <button class="btn small" id="email-btn" onclick="findEmails()">
+          <span id="email-label">✉ メールを一括取得</span>
+        </button>
+      </div>
+      <div id="email-progress-wrap" class="hidden" style="margin-bottom:8px;">
+        <div style="font-size:12px;color:#555;margin-bottom:4px;" id="email-progress-text">メール調査中...</div>
+        <div class="progress-wrap"><div class="progress-bar" id="email-progress-bar"></div></div>
       </div>
       <div class="result-table-wrap">
         <table class="result-table">
           <thead><tr>
-            <th>#</th><th>法人名</th><th>業種名</th><th>電話番号</th><th>住所</th>
+            <th>#</th><th>法人名</th><th>業種名</th><th>電話番号</th><th>メール</th><th>住所</th>
           </tr></thead>
           <tbody id="result-tbody"></tbody>
         </table>
       </div>
+      <button class="btn primary" id="save-btn" onclick="saveWithEmail()" style="margin-top:8px;">
+        <span id="save-label">📊 メール情報を含めてスプレッドシートに保存</span>
+      </button>
     </div>
   </div>
 
@@ -408,12 +418,94 @@ function renderPreview(results) {
       <td title="${r['法人名']}">${r['法人名']||'-'}</td>
       <td>${r['業種名']||'-'}</td>
       <td>${r['電話番号']||'-'}</td>
-      <td title="${r['住所']}">${(r['住所']||'-').substring(0,18)}</td>
+      <td>${r['メール']||'-'}</td>
+      <td title="${r['住所']}">${(r['住所']||'-').substring(0,16)}</td>
     </tr>
   `).join('');
   document.getElementById('result-count').textContent =
     results.length > 20 ? `${results.length}件（先頭20件表示）` : results.length;
   document.getElementById('result-section').classList.remove('hidden');
+}
+
+// ── メール一括取得 ────────────────────────────────────
+async function findEmails() {
+  if (!lastResults.length) return;
+
+  document.getElementById('email-btn').disabled = true;
+  document.getElementById('email-label').innerHTML = '<span class="spinner"></span> 調査中...';
+  document.getElementById('email-progress-wrap').classList.remove('hidden');
+
+  for (let i = 0; i < lastResults.length; i++) {
+    const r = lastResults[i];
+    const pct = Math.round((i / lastResults.length) * 100);
+    document.getElementById('email-progress-bar').style.width = pct + '%';
+    document.getElementById('email-progress-text').textContent =
+      `メール調査中... ${i+1} / ${lastResults.length}件（見つかった: ${lastResults.filter(x=>x['メール']).length}件）`;
+
+    if (r['メール']) continue; // 既に取得済みはスキップ
+
+    try {
+      const res  = await fetch(`${API_BASE}/api/find_email`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json', 'X-App-Password': appPassword},
+        body: JSON.stringify({ name: r['法人名'], address: r['住所'], hp: r['HP'] })
+      });
+      const data = await res.json();
+      if (res.ok && data.email) {
+        lastResults[i]['メール'] = data.email;
+      }
+    } catch(e) { /* スキップ */ }
+  }
+
+  document.getElementById('email-progress-bar').style.width = '100%';
+  document.getElementById('email-progress-wrap').classList.add('hidden');
+  document.getElementById('email-btn').disabled = false;
+  document.getElementById('email-label').textContent = '✉ メールを一括取得';
+
+  const found = lastResults.filter(r => r['メール']).length;
+  renderPreview(lastResults);
+  setStatus(`✓ メール調査完了（${found}件取得 / ${lastResults.length}件中）`, 'success');
+}
+
+// ── メール込みでスプレッドシートに保存 ──────────────────
+async function saveWithEmail() {
+  const sheetName = document.getElementById('sheet-name-input').value.trim();
+  const sheetId   = document.getElementById('sheet-id-input').value.trim();
+  const token     = document.getElementById('token-input').value.trim();
+
+  if (!token)     { setStatus('設定タブでGoogle OAuthトークンを入力してください', 'error'); return; }
+  if (!sheetId)   { setStatus('設定タブでスプレッドシートIDを入力してください', 'error'); return; }
+  if (!sheetName) { setStatus('転記先シート名を入力してください', 'error'); return; }
+
+  document.getElementById('save-btn').disabled = true;
+  document.getElementById('save-label').innerHTML = '<span class="spinner"></span> 保存中...';
+  setStatus('スプレッドシートに保存中...', 'loading');
+
+  const rows = lastResults.map(r => [
+    r['取得日'], r['法人名'], r['業種名'], r['電話番号'],
+    r['メール'] || '', r['住所'], r['HP'], r['都道府県']
+  ]);
+
+  try {
+    const res  = await fetch(`${API_BASE}/api/write_sheet`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json', 'X-App-Password': appPassword},
+      body: JSON.stringify({ token, sheet_id: sheetId, sheet_name: sheetName, rows })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+
+    const found = lastResults.filter(r => r['メール']).length;
+    const msg = `✓ ${data.written}件を「${sheetName}」に${data.mode}しました（メール取得: ${found}件）` +
+                (data.duplicates > 0 ? `（重複除外: ${data.duplicates}件）` : '');
+    setStatus(msg, 'success');
+    addHistory({ label: `${document.getElementById('pref-select').value} / ${document.getElementById('tags-input').value}`, sheet: sheetName, written: data.written, date: new Date().toLocaleDateString('ja-JP') });
+  } catch(err) {
+    setStatus('保存エラー: ' + err.message, 'error');
+  } finally {
+    document.getElementById('save-btn').disabled = false;
+    document.getElementById('save-label').textContent = '📊 メール情報を含めてスプレッドシートに保存';
+  }
 }
 
 // ── 履歴 ─────────────────────────────────────────────

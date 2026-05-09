@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import requests
 import time
 import os
+import re
 
 app = Flask(__name__)
 CORS(app)
@@ -171,7 +172,7 @@ def write_sheet():
         return jsonify({"error": "スプレッドシートへのアクセスに失敗しました"}), 400
 
     titles = [s["properties"]["title"] for s in meta.json().get("sheets", [])]
-    SHEET_HEADERS = ["取得日", "法人名", "業種名", "電話番号", "住所", "HP", "都道府県"]
+    SHEET_HEADERS = ["取得日", "法人名", "業種名", "電話番号", "メール", "住所", "HP", "都道府県"]
 
     if sheet_name not in titles:
         # 新規シート作成
@@ -205,7 +206,7 @@ def write_sheet():
         return jsonify({"success": True, "written": 0, "duplicates": dup_count, "mode": mode})
 
     # 一括書き込み
-    rng = requests.utils.quote(f"{sheet_name}!A:G", safe="")
+    rng = requests.utils.quote(f"{sheet_name}!A:H", safe="")
     res = requests.post(
         f"https://sheets.googleapis.com/v4/spreadsheets/{sheet_id}/values/{rng}:append"
         "?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS",
@@ -216,6 +217,78 @@ def write_sheet():
 
     return jsonify({"success": True, "written": len(new_rows), "duplicates": dup_count, "mode": mode})
 
+
+
+# ── Claude API + Web検索でメールアドレスを調査 ────────────
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+
+@app.route("/api/find_email", methods=["POST"])
+def find_email():
+    """
+    Claude API + Web検索ツールで企業のメールアドレスを調査する。
+    1件ずつ処理してメモリを節約する。
+    """
+    if not check_auth():
+        return jsonify({"error": "認証が必要です"}), 401
+
+    if not ANTHROPIC_API_KEY:
+        return jsonify({"error": "ANTHROPIC_API_KEYが設定されていません"}), 400
+
+    data     = request.json
+    name     = data.get("name", "").strip()
+    address  = data.get("address", "").strip()
+    hp       = data.get("hp", "").strip()
+
+    if not name:
+        return jsonify({"error": "法人名は必須です"}), 400
+
+    prompt = f"""以下の企業のメールアドレスを調べてください。
+
+企業名: {name}
+住所: {address}
+HP: {hp if hp else "不明"}
+
+Web検索で企業の公式HPや問い合わせページを調べ、メールアドレスを見つけてください。
+メールアドレスが見つかった場合は、そのメールアドレスのみを返してください。
+見つからない場合は「不明」とだけ返してください。
+複数ある場合は最も代表的なものを1つだけ返してください。"""
+
+    try:
+        resp = requests.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={
+                "Content-Type": "application/json",
+                "x-api-key": ANTHROPIC_API_KEY,
+                "anthropic-version": "2023-06-01",
+            },
+            json={
+                "model": "claude-haiku-4-5-20251001",
+                "max_tokens": 100,
+                "tools": [{"type": "web_search_20250305", "name": "web_search"}],
+                "messages": [{"role": "user", "content": prompt}]
+            },
+            timeout=30,
+        )
+
+        if not resp.ok:
+            return jsonify({"error": f"Claude APIエラー: {resp.status_code}"}), 500
+
+        # レスポンスからテキストを抽出
+        content_blocks = resp.json().get("content", [])
+        email = ""
+        for block in content_blocks:
+            if block.get("type") == "text":
+                text = block.get("text", "").strip()
+                # メールアドレスを正規表現で抽出
+match = re.search(r'[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}', text)
+                if match:
+                    email = match.group()
+                break
+
+        return jsonify({"success": True, "email": email})
+
+    except Exception as e:
+        return jsonify({"error": f"エラー: {str(e)}"}), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
