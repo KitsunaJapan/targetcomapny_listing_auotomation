@@ -57,8 +57,7 @@ def logout():
 @app.route("/api/scrape", methods=["POST"])
 def api_scrape():
     """
-    NAVITIMEから業種・都道府県を指定して企業情報を取得する。
-    取得件数に達するまでページをめくり続ける。
+    サーバー側でNAVITIMEにアクセスしてHTMLをパースする。
     """
     if not check_auth():
         return jsonify({"error": "認証が必要です"}), 401
@@ -66,7 +65,6 @@ def api_scrape():
     data      = request.json
     pref_name = data.get("pref_name", "").strip()
     tags      = data.get("tags", "").strip()
-    limit     = min(int(data.get("limit", 50)), 1000)
     page      = int(data.get("page", 1))
 
     pref_code = PREF_CODES.get(pref_name)
@@ -75,72 +73,58 @@ def api_scrape():
     if not tags:
         return jsonify({"error": "業種タグは必須です"}), 400
 
-    today   = time.strftime("%Y-%m-%d")
-    results = []
+    url = f"https://www.navitime.co.jp/category/0516/{pref_code}/?page={page}&tags={tags}"
+    try:
+        resp = requests.get(url, headers=HEADERS, timeout=15)
+        if resp.status_code == 404:
+            return jsonify({"success": True, "fetched": 0, "results": []})
+        if not resp.ok:
+            return jsonify({"error": f"NAVITIMEアクセスエラー: HTTP {resp.status_code}"}), 400
 
-    while len(results) < limit:
-        url = f"https://www.navitime.co.jp/category/0516/{pref_code}/?page={page}&tags={tags}"
-        try:
-            resp = requests.get(url, headers=HEADERS, timeout=15)
-            if resp.status_code == 404:
-                break
-            if not resp.ok:
-                return jsonify({"error": f"NAVITIMEアクセスエラー: HTTP {resp.status_code}"}), 400
+        today   = time.strftime("%Y-%m-%d")
+        results = []
+        soup    = BeautifulSoup(resp.text, "html.parser")
+        items   = soup.select("li.spot-section")
 
-            soup  = BeautifulSoup(resp.text, "html.parser")
-            items = soup.select("li.spot-section")
-            if not items:
-                break
+        for item in items:
+            name_el  = item.select_one(".spot-name-text")
+            addr_el  = item.select_one(".spot-address")
+            link_el  = item.select_one("a[href^='/poi?spot=']")
+            tag_els  = item.select(".spot-tag")
 
-            for item in items:
-                if len(results) >= limit:
+            name       = name_el.text.strip()  if name_el else ""
+            address    = addr_el.text.strip()   if addr_el else ""
+            detail_url = ("https://www.navitime.co.jp" + link_el["href"]) if link_el else ""
+
+            industry_name = ""
+            for tag in tag_els:
+                t = tag.text.strip().lstrip("#")
+                if t:
+                    industry_name = t
                     break
 
-                name_el  = item.select_one(".spot-name-text")
-                addr_el  = item.select_one(".spot-address")
-                link_el  = item.select_one("a[href^='/poi?spot=']")
-                tag_els  = item.select(".spot-tag")
+            if not name:
+                continue
 
-                name    = name_el.text.strip() if name_el else ""
-                address = addr_el.text.strip() if addr_el else ""
-                detail_url = ("https://www.navitime.co.jp" + link_el["href"]) if link_el else ""
+            results.append({
+                "取得日":   today,
+                "法人名":   name,
+                "業種名":   industry_name,
+                "電話番号": "",
+                "住所":     address,
+                "HP":       detail_url,
+                "都道府県": pref_name,
+            })
 
-                # 業種名：最初のタグから取得
-                industry_name = ""
-                for tag in tag_els:
-                    t = tag.text.strip().lstrip("#")
-                    if t:
-                        industry_name = t
-                        break
+        return jsonify({
+            "success": True,
+            "fetched": len(results),
+            "next_page": page + 1,
+            "results": results,
+        })
 
-                # 電話番号：詳細ページから取得（件数が少ない場合のみ）
-                phone = ""
-
-                if not name:
-                    continue
-
-                results.append({
-                    "取得日":   today,
-                    "法人名":   name,
-                    "業種名":   industry_name,
-                    "電話番号": phone,
-                    "住所":     address,
-                    "HP":       detail_url,
-                    "都道府県": pref_name,
-                })
-
-            page += 1
-            time.sleep(1)
-
-        except Exception as e:
-            return jsonify({"error": f"スクレイピングエラー: {str(e)}"}), 500
-
-    return jsonify({
-        "success": True,
-        "fetched": len(results),
-        "next_page": page,
-        "results": results,
-    })
+    except Exception as e:
+        return jsonify({"error": f"スクレイピングエラー: {str(e)}"}), 500
 
 
 @app.route("/api/write_sheet", methods=["POST"])
@@ -271,7 +255,12 @@ Web検索で企業の公式HPや問い合わせページを調べ、メールア
         )
 
         if not resp.ok:
-            return jsonify({"error": f"Claude APIエラー: {resp.status_code}"}), 500
+            try:
+                err_detail = resp.json()
+            except Exception:
+                err_detail = resp.text[:300]
+            print(f"Claude API error: {resp.status_code} / {err_detail}", flush=True)
+            return jsonify({"error": f"Claude APIエラー: {resp.status_code}", "detail": str(err_detail)}), 500
 
         # レスポンスからテキストを抽出
         content_blocks = resp.json().get("content", [])
