@@ -280,7 +280,7 @@ Web検索で企業の公式HPや問い合わせページを調べ、メールア
             if block.get("type") == "text":
                 text = block.get("text", "").strip()
                 # メールアドレスを正規表現で抽出
-match = re.search(r'[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}', text)
+                match = re.search(r"[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}", text)
                 if match:
                     email = match.group()
                 break
