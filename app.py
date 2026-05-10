@@ -237,7 +237,8 @@ Web検索で企業の公式HPや問い合わせページを調べ、メールア
 見つからない場合は「不明」とだけ返してください。
 複数ある場合は最も代表的なものを1つだけ返してください。"""
 
-    try:
+    for attempt in range(3):  # 最大3回リトライ
+      try:
         resp = requests.post(
             "https://api.anthropic.com/v1/messages",
             headers={
@@ -253,6 +254,12 @@ Web検索で企業の公式HPや問い合わせページを調べ、メールア
             },
             timeout=30,
         )
+
+        if resp.status_code == 429:
+            wait = (attempt + 1) * 10  # 10秒、20秒、30秒と待機
+            print(f"Rate limit hit, waiting {wait}s...", flush=True)
+            time.sleep(wait)
+            continue
 
         if not resp.ok:
             try:
@@ -276,8 +283,10 @@ Web検索で企業の公式HPや問い合わせページを調べ、メールア
 
         return jsonify({"success": True, "email": email})
 
-    except Exception as e:
+      except Exception as e:
         return jsonify({"error": f"エラー: {str(e)}"}), 500
+
+    return jsonify({"error": "レート制限のため取得できませんでした"}), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

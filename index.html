@@ -463,6 +463,9 @@ async function findEmails() {
         lastResults[i]['メール'] = data.email;
       }
     } catch(e) { /* スキップ */ }
+
+    // レート制限対策：1件ごとに2秒待機
+    await new Promise(r => setTimeout(r, 2000));
   }
 
   document.getElementById('email-progress-bar').style.width = '100%';
